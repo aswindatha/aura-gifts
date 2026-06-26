@@ -2,13 +2,23 @@
 -- This file resides alongside schema.sql and can be loaded with:
 --   psql -f data.sql -U postgres -d aura_prints
 
+-- Clean existing data and reset auto-incrementing IDs to make the script re-runnable
+TRUNCATE TABLE ecommerce.users RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.products RESTART IDENTITY CASCADE;
+TRUNCATE TABLE maintenance.machinery RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.otps RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.payments RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.webhook_events RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.refunds RESTART IDENTITY CASCADE;
+
 -- 1. Users (admin, employee, shopkeeper, customer)
-INSERT INTO ecommerce.users (id, name, email, phone, password_hash, role, points, subscription_tier, address, email_verified)
+INSERT INTO ecommerce.users (id, name, email, phone, password_hash, role, points, subscription_tier, address, photo_url, id_proof_type, id_proof_number, email_verified)
 VALUES
-    ('c0000000-0000-0000-0000-000000000001', 'Site Admin', 'admin@auraprints.com', NULL,            '$2b$12$PJ7IeEIzaqZ61mHS996vq.dvb1kjh0JFAY3RvnMj1xFzQi4FYSLNe', 1, 0, 0, 'Admin HQ, Creative City', TRUE),
-    ('c0000000-0000-0000-0000-000000000002', 'John Employee', 'employee@auraprints.com', NULL,      '$2b$12$q06921.sepR2wtbcNTCE2ufTUqvjNQUTZh12KXqwLTyA43OWdJpB.', 2, 0, 0, 'Staff Room, Shop Floor', TRUE),
-    ('c0000000-0000-0000-0000-000000000003', 'Maya Shopkeeper', 'shopkeeper@auraprints.com', NULL,   '$2b$12$TMMIuqLmZgnflwYu8ONnOuJUCPYt.RrWopV7bVkurWKjtAW0fwT32', 3, 0, 0, 'Billing Desk, Shop Floor', TRUE),
-    ('c0000000-0000-0000-0000-000000000004', 'Jane Customer', 'jane@auraprints.com', '+91 98765 43210', '$2b$12$He6x7XgOjaEq3vS2JRT/UOfrsMNoqmGWn1C0zO6pokWISqZ08ZzTK', 4, 150, 1, '123 Artisan Way, Apt 4B, Mumbai, MH - 400001', TRUE);
+    ('c0000000-0000-0000-0000-000000000001', 'Site Admin', 'admin@auraprints.com', NULL,            '$2b$12$Lql1vCWG8bJ2UUgIzrZH6u.K1adpKUbWkW43EjJxTfpIofAA4VTSq', 1, 0, 0, 'Admin HQ, Creative City', NULL, NULL, NULL, TRUE),
+    ('c0000000-0000-0000-0000-000000000002', 'Dave Operator', 'dave@auraprints.com', NULL,          '$2b$12$ix0FsyNJFMDR.PFvBrtU9OfH2QblZO3Ib5epSdYFQO/1IOvH6srrS', 2, 0, 0, 'Staff Room, Shop Floor', NULL, NULL, NULL, TRUE),
+    ('c0000000-0000-0000-0000-000000000003', 'Pushpavel', 'pushpa@auraprints.com', NULL,             '$2b$12$gD84lRPpU1MR1oU5CbV3o.1/X9S0doRgMiXCd0ptSF2Oly06C7qci', 3, 0, 0, 'Billing Desk, Shop Floor', NULL, NULL, NULL, TRUE),
+    ('c0000000-0000-0000-0000-000000000004', 'Jane Doe', 'customer@auraprints.com', '9876543210',    '$2b$12$uxUUjBVqtXXH8UJTmPD7ouKPLX.u5maUASfzMvhqpSZ7JZ5t2p8Mm', 4, 450, 2, '123 Artisan Way, Apt 4B, Mumbai, MH - 400001', NULL, NULL, NULL, TRUE),
+    ('c0000000-0000-0000-0000-000000000005', 'Alex Patel', 'student@auraprints.com', '9876543211',    '$2b$12$QV1q7efTpKOXcdVFb/dqH.GtSDxsZIIvZqYbPOOYncaINJmPEhFOq', 4, 150, 1, '456 Academy Road, Pune, MH - 411001', NULL, NULL, NULL, TRUE);
 
 -- Capture the generated UUIDs for later reference (optional – you can replace with concrete UUIDs if needed)
 -- For illustration purposes we will use sub‑queries to fetch the IDs by email.
@@ -22,16 +32,15 @@ VALUES
         1250.00,
         'Frames',
         'Featured',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBehfvhJuTMiXtWFQe2pWlkrsR8gXJXSo2dx0miac6CbTrsrNlBsUYj267ST_bYnG1SFOFQ1nL_59kxAVZ2bCO70omCeToLv3qhbzb9jlbO0opg7OW1FQATnlVYo6sjKOkbCaoV9mMBnuqC9-3ZFAsU2Fuu-YuKBs1V3IY-mkNJe0bEEYSdN9I62AeKgciKnxvKeHPMoDIFPqLECldyLjp9XziksDk3CxsbGDV8r8EMtdyMyKnV-ziRB4SNi0vHJiNFFGWcHOjJqCs',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame1.jpeg',
         FALSE,
         1800.00,
         4.80,
         124,
         '[
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuBehfvhJuTMiXtWFQe2pWlkrsR8gXJXSo2dx0miac6CbTrsrNlBsUYj267ST_bYnG1SFOFQ1nL_59kxAVZ2bCO70omCeToLv3qhbzb9jlbO0opg7OW1FQATnlVYo6sjKOkbCaoV9mMBnuqC9-3ZFAsU2Fuu-YuKBs1V3IY-mkNJe0bEEYSdN9I62AeKgciKnxvKeHPMoDIFPqLECldyLjp9XziksDk3CxsbGDV8r8EMtdyMyKnV-ziRB4SNi0vHJiNFFGWcHOjJqCs",
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuDTvXYHmtnxtTPr3cp9eXMQWBs-X7SxdsN74Fsi8cQcGV1_jukaC8BJoVwBwmxhsdrglf513-nigeMmK0hMCHRp7n-eot_J7D0jkjA4YOCMam-xxKNfEgVayhCoN4qxlbDFBnjpe3jAh7DFq98gEaf_ED3DBoXcszF0vzAP2V5Y0Wsebo1euRgKMav_oGqk3e_KoyAMLQMlLmNAdJYwADrYgxKesL3SWrLnENA3FpztGtTMRNgFCIwObR9SLm44dnsNsPofrj67dFM",
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuBehfvhJuTMiXtWFQe2pWlkrsR8gXJXSo2dx0miac6CbTrsrNlBsUYj267ST_bYnG1SFOFQ1nL_59kxAVZ2bCO70omCeToLv3qhbzb9jlbO0opg7OW1FQATnlVYo6sjKOkbCaoV9mMBnuqC9-3ZFAsU2Fuu-YuKBs1V3IY-mkNJe0bEEYSdN9I62AeKgciKnxvKeHPMoDIFPqLECldyLjp9XziksDk3CxsbGDV8r8EMtdyMyKnV-ziRB4SNi0vHJiNFFGWcHOjJqCs"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame1.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame2.jpeg"
+]'::jsonb,
         '[
             "Hand-selected natural teakwood borders for premium durability and organic aesthetic appeal.",
             "Supplied with standard high-transmission float glass offering 90%+ optical clarity.",
@@ -58,15 +67,15 @@ VALUES
         1650.00,
         'Frames',
         NULL,
-        '/charcoal_walnut_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame2.jpeg',
         FALSE,
         2200.00,
         4.90,
         86,
         '[
-            "/charcoal_walnut_frame.png",
-            "/gallery_black_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame2.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame3.jpeg"
+]'::jsonb,
         '[
             "Stained dark walnut borders with subtle charcoal gray undertones.",
             "Sleek and heavy profile, providing a grand museum presence for your home.",
@@ -92,15 +101,15 @@ VALUES
         1450.00,
         'Frames',
         'Hot Seller',
-        '/classic_oak_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame3.jpeg',
         FALSE,
         1950.00,
         4.70,
         94,
         '[
-            "/classic_oak_frame.png",
-            "/charcoal_walnut_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame3.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame4.jpeg"
+]'::jsonb,
         '[
             "Made from 100% genuine sustainable Northern White Oak wood.",
             "Natural raw finish preserved with light protective organic wax coat.",
@@ -126,15 +135,15 @@ VALUES
         2400.00,
         'Frames',
         'Trending',
-        '/modern_gold_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame4.jpeg',
         FALSE,
         3200.00,
         4.80,
         73,
         '[
-            "/modern_gold_frame.png",
-            "/gallery_black_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame4.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame5.jpeg"
+]'::jsonb,
         '[
             "Aerospace-grade anodized aluminum alloy, lightweight yet highly durable.",
             "Brushed metallic gold finish with polished protective clear lacquer coating.",
@@ -160,15 +169,15 @@ VALUES
         1250.00,
         'Frames',
         'New Release',
-        '/minimalist_white_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame5.jpeg',
         FALSE,
         1600.00,
         4.60,
         42,
         '[
-            "/minimalist_white_frame.png",
-            "/classic_oak_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame5.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame6.jpeg"
+]'::jsonb,
         '[
             "Medium-density fiberwood core with premium matte white wrap coating.",
             "Clean corners and edges with no visible joint lines.",
@@ -194,15 +203,15 @@ VALUES
         1300.00,
         'Frames',
         NULL,
-        '/gallery_black_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame6.jpeg',
         FALSE,
         1750.00,
         4.80,
         110,
         '[
-            "/gallery_black_frame.png",
-            "/charcoal_walnut_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame6.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame7.jpeg"
+]'::jsonb,
         '[
             "Solid wood core with satin black protective matte coating.",
             "Deep frame profile for a dimensional gallery shadowbox appearance.",
@@ -228,15 +237,14 @@ VALUES
         350.00,
         'Frames',
         NULL,
-        '/fine_art_print.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/frame7.jpeg',
         FALSE,
         500.00,
         4.90,
         148,
         '[
-            "/fine_art_print.png",
-            "/fine_art_print.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame7.jpeg"
+]'::jsonb,
         '[
             "Printed on professional archival-grade 260gsm lustre photographic paper.",
             "High-fidelity 12-ink printing process ensures stunning detail and color accuracy.",
@@ -263,15 +271,16 @@ VALUES
         2850.00,
         'Frames',
         NULL,
-        '/collage_frame.png',
+        'file:///C:/Users/aswin/Music/AURA/images/frame/farme11.jpeg',
         FALSE,
         3900.00,
         4.80,
         92,
         '[
-            "/collage_frame.png",
-            "/gallery_black_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/frame/farme11.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame12.jpeg",
+    "file:///C:/Users/aswin/Music/AURA/images/frame/frame13.jpeg"
+]'::jsonb,
         '[
             "Heavy-duty gallery black frame profile for structural durability.",
             "Pristine white multi-aperture mat board holds 9 square photos.",
@@ -297,15 +306,14 @@ VALUES
         2200.00,
         'Frames',
         NULL,
-        '/floating_canvas.png',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/canvas.jpeg',
         FALSE,
         3000.00,
         4.70,
         46,
         '[
-            "/floating_canvas.png",
-            "/modern_gold_frame.png"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/canvas.jpeg"
+]'::jsonb,
         '[
             "Gold anodized floating profile creates a deep shadow gap effect.",
             "Designed specifically for stretched canvas paintings or prints.",
@@ -331,15 +339,14 @@ VALUES
         3500.00,
         'Stationery',
         'Bestseller',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/pens.jpeg',
         FALSE,
         4200.00,
         4.90,
         92,
         '[
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg",
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuCl1EvgR54j_YwzfA7phtTKN04lR-bS4i1obDgD361m44Sz6oPsGI389fbBjSN8dH5PQtzrBxeoBSl5l-TaKAodUW2pAz0A7GRyhJAI-ij9s84Q7ZOZ3nN0DmrSNeUatQgYhAwRNJaGWRIZzM5qhu-0MNxHDGF9w15CMYu9gPKGgATFsT678xc3UzXjI5dkVg0mtvXJi7dnOkrngJSpG8UQZaTiWXMcfIu9hQe0kvN7o3fMqkLlr4LhyfWG3hyRigIeSAmUjuZzBjs"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/pens.jpeg"
+]'::jsonb,
         '[
             "Ergonomically weighted brass body for fatigue-free signature writing.",
             "Schmidt liquid ink system for consistent skip-free flow.",
@@ -365,15 +372,14 @@ VALUES
         6500.00,
         'Stationery',
         'Out of Stock',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCl1EvgR54j_YwzfA7phtTKN04lR-bS4i1obDgD361m44Sz6oPsGI389fbBjSN8dH5PQtzrBxeoBSl5l-TaKAodUW2pAz0A7GRyhJAI-ij9s84Q7ZOZ3nN0DmrSNeUatQgYhAwRNJaGWRIZzM5qhu-0MNxHDGF9w15CMYu9gPKGgATFsT678xc3UzXjI5dkVg0mtvXJi7dnOkrngJSpG8UQZaTiWXMcfIu9hQe0kvN7o3fMqkLlr4LhyfWG3hyRigIeSAmUjuZzBjs',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/pens.jpeg',
         TRUE,
         7500.00,
         4.70,
         34,
         '[
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuCl1EvgR54j_YwzfA7phtTKN04lR-bS4i1obDgD361m44Sz6oPsGI389fbBjSN8dH5PQtzrBxeoBSl5l-TaKAodUW2pAz0A7GRyhJAI-ij9s84Q7ZOZ3nN0DmrSNeUatQgYhAwRNJaGWRIZzM5qhu-0MNxHDGF9w15CMYu9gPKGgATFsT678xc3UzXjI5dkVg0mtvXJi7dnOkrngJSpG8UQZaTiWXMcfIu9hQe0kvN7o3fMqkLlr4LhyfWG3hyRigIeSAmUjuZzBjs",
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/pens.jpeg"
+]'::jsonb,
         '[
             "Hand-polished precious resin cap and barrel.",
             "24k gold-plated accents and customized medium steel nib.",
@@ -399,14 +405,14 @@ VALUES
         1850.00,
         'Stationery',
         'Artisanal',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/lanyard.jpeg',
         FALSE,
         2500.00,
         4.90,
         142,
         '[
-            "https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/lanyard.jpeg"
+]'::jsonb,
         '[
             "Full-grain genuine leather cover that develops a beautiful unique patina over time.",
             "120 sheets (240 pages) of handmade, acid-free recycled cotton paper.",
@@ -433,14 +439,14 @@ VALUES
         2900.00,
         'Office & Gifts',
         'Popular',
-        'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/hat.jpeg',
         FALSE,
         3800.00,
         4.80,
         88,
         '[
-            "https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/hat.jpeg"
+]'::jsonb,
         '[
             "Forged with 100% solid brass for heavy tabletop stability and vintage appeal.",
             "Noiseless sweep quartz movement provides an absolutely silent work environment.",
@@ -466,14 +472,14 @@ VALUES
         1650.00,
         'Office & Gifts',
         'Best Seller',
-        'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/socks.jpeg',
         FALSE,
         2100.00,
         4.70,
         76,
         '[
-            "https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/socks.jpeg"
+]'::jsonb,
         '[
             "Carved from a single piece of premium sustainable American Walnut wood.",
             "Non-slip silicone pads on bottom protect your desk surfaces from scratches.",
@@ -499,14 +505,14 @@ VALUES
         1450.00,
         'Stationery',
         'Collector',
-        'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg',
+        'file:///C:/Users/aswin/Music/AURA/images/gifts/plush.jpeg',
         FALSE,
         1950.00,
         4.90,
         54,
         '[
-            "https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"
-        ]'::jsonb,
+    "file:///C:/Users/aswin/Music/AURA/images/gifts/plush.jpeg"
+]'::jsonb,
         '[
             "Includes 1 wooden handle stamp with 3 interchangeable engraved brass dies (Tree of Life, Rose, Crown).",
             "Comes with 2 bottles of premium wax seal beads (Deep Gold & Royal Crimson).",
@@ -526,7 +532,6 @@ VALUES
         NULL,
         NULL
     );
-
 -- 3. Orders & Order Items (linked to Jane Customer)
 -- Order 1: Awaiting Payment Verification, Total: ₹1,350
 INSERT INTO ecommerce.orders (
@@ -619,4 +624,4 @@ INSERT INTO maintenance.repair_logs (
 
 -- 6. OTPs – Example one‑time code for Jane Customer (expires in 10 minutes)
 INSERT INTO ecommerce.otps (email, otp_code, expires_at)
-VALUES ('jane@auraprints.com', '123456', NOW() + INTERVAL '10 minutes');
+VALUES ('customer@auraprints.com', '123456', NOW() + INTERVAL '10 minutes');

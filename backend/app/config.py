@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str       = ""
     CRON_SECRET_KEY: str      = "aura-prints-default-cron-secret-key-change-in-production"
 
+    # ── Razorpay ───────────────────────────────────────────────────────────────
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+    RAZORPAY_WEBHOOK_SECRET: str = ""
+    RAZORPAY_CURRENCY: str = "INR"
+
     # ── Chat ───────────────────────────────────────────────────────────────────
     CHAT_RETENTION_DAYS: int      = 30
     CHAT_MESSAGE_LIMIT: int       = 500

@@ -24,6 +24,9 @@ class UserResponse(BaseModel):
     role: str
     points: int
     subscriptionTier: str
+    photo_url: Optional[str] = None
+    id_proof_type: Optional[str] = None
+    id_proof_number: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -40,8 +43,32 @@ class UserResponse(BaseModel):
             role=ROLE_MAP.get(user_obj.role, "user"),
             points=user_obj.points,
             subscriptionTier=SUB_MAP.get(user_obj.subscription_tier, "None"),
+            photo_url=getattr(user_obj, "photo_url", None),
+            id_proof_type=getattr(user_obj, "id_proof_type", None),
+            id_proof_number=getattr(user_obj, "id_proof_number", None),
             created_at=user_obj.created_at
         )
+
+class AdminUserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    subscriptionTier: Optional[str] = None
+    photo_url: Optional[str] = None
+    id_proof_type: Optional[str] = None
+    id_proof_number: Optional[str] = None
+    points: Optional[int] = None
+
+class AdminUserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    subscriptionTier: Optional[str] = "None"
+    photo_url: Optional[str] = None
+    id_proof_type: Optional[str] = None
+    id_proof_number: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email: str
@@ -273,3 +300,56 @@ class CartItemCreate(BaseModel):
 
 class CartItemUpdate(BaseModel):
     quantity: int
+
+
+# Razorpay Integration Schemas
+class CheckoutRequest(BaseModel):
+    payment_method: str = "razorpay"
+    delivery_type: str
+    delivery_cost: float
+    full_name: str
+    street_address: str
+    city: str
+    pin_code: str
+    phone_number: str
+
+
+class CheckoutResponse(BaseModel):
+    order_id: UUID
+    razorpay_order_id: str
+    amount: float
+    currency: str = "INR"
+    status: str = "pending_payment"
+
+
+class PaymentVerifyRequest(BaseModel):
+    order_id: UUID
+    razorpay_payment_id: str
+    razorpay_order_id: str
+    razorpay_signature: str
+
+
+class PaymentVerifyResponse(BaseModel):
+    success: bool
+    message: str
+    order_status: str
+
+
+class PaymentStatusResponse(BaseModel):
+    order_id: UUID
+    payment_status: str
+    razorpay_payment_id: Optional[str] = None
+    amount: float
+    updated_at: datetime
+
+
+class RefundRequest(BaseModel):
+    order_id: UUID
+    amount: float
+    reason: Optional[str] = None
+
+
+class RefundResponse(BaseModel):
+    refund_id: str
+    status: str
+

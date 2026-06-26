@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, SmallInteger, DateTime, Numeric, Boolean, Text, ForeignKey, JSON
+from sqlalchemy import Column, String, Integer, SmallInteger, DateTime, Numeric, Boolean, Text, ForeignKey, JSON, Index, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -19,22 +19,43 @@ class User(Base):
     # Role codes (Rule 1.2): 1 = admin, 2 = employee, 3 = shopkeeper, 4 = user
     role = Column(SmallInteger, nullable=False, default=4)
     points = Column(Integer, nullable=False, default=0)
-    # Subscription Tiers: 0 = None, 1 = Student, 2 = Premium, 3 = Enterprise
+    # Subscription Tiers: 0 = None, 1 = Student, 2 = Silver, 3 = Gold, 4 = Premium
     subscription_tier = Column(SmallInteger, nullable=False, default=0)
+    subscription_expires_at = Column(DateTime(timezone=True), nullable=True)  # NULL = no active plan
     address = Column(Text, nullable=True)
+    photo_url = Column(String(500), nullable=True)
+    id_proof_type = Column(String(100), nullable=True)
+    id_proof_number = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
-# RFID Card model for one-to-one mapping with User
+# RFID Card model for tracking historical assigned cards
 class RFIDCard(Base):
     __tablename__ = "rfid_cards"
+    __table_args__ = (
+        Index("idx_rfid_cards_active_uid", "rfid_uid", unique=True, postgresql_where=text("is_active = true")),
+        Index("idx_rfid_cards_active_user", "user_id", unique=True, postgresql_where=text("is_active = true")),
+        {"schema": "ecommerce"}
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    rfid_uid = Column(String(255), nullable=False, index=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    deactivated_at = Column(DateTime(timezone=True), nullable=True)
+    assigned_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    assigned_by = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id"), nullable=True)
+
+class RFIDScanLog(Base):
+    __tablename__ = "rfid_scan_logs"
     __table_args__ = {"schema": "ecommerce"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="RESTRICT"), unique=True, nullable=False, index=True)
-    rfid_uid = Column(String(255), unique=True, nullable=False, index=True)
-    assigned_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    assigned_by = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id"), nullable=True)
+    rfid_uid = Column(String(255), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="SET NULL"), nullable=True, index=True)
+    scan_time = Column(DateTime(timezone=True), default=datetime.utcnow, index=True)
+    status = Column(String(50), nullable=False)
+    scanner_id = Column(String(100), nullable=False, default="admin_console")
 
 class OTPRecord(Base):
     __tablename__ = "otps"
@@ -84,6 +105,8 @@ class Order(Base):
     status = Column(SmallInteger, nullable=False, default=1, index=True)
     delivery_type = Column(String(100), nullable=False)
     delivery_cost = Column(Numeric(10, 2), nullable=False, default=0.00)
+    payment_method = Column(String(50), nullable=True)
+    payment_intent_id = Column(String(255), nullable=True)
     payment_screenshot_url = Column(Text, nullable=True)
     full_name = Column(String(255), nullable=False)
     street_address = Column(Text, nullable=False)
@@ -182,4 +205,55 @@ class CartItem(Base):
     # Relationships
     cart = relationship("Cart", back_populates="items")
     product = relationship("Product")
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    razorpay_order_id = Column(String(255), nullable=False, index=True)
+    razorpay_payment_id = Column(String(255), nullable=True)
+    razorpay_signature = Column(String(255), nullable=True)
+    amount = Column(Numeric(10, 2), nullable=False)
+    currency = Column(String(3), nullable=False, default="INR")
+    status = Column(String(20), nullable=False, default="created", index=True)
+    payment_method = Column(String(50), nullable=True)
+    payment_details = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    order = relationship("Order", backref="payments")
+
+
+class WebhookEvent(Base):
+    __tablename__ = "webhook_events"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id = Column(String(255), unique=True, nullable=False, index=True)
+    event_type = Column(String(100), nullable=False)
+    payload = Column(JSON, nullable=False)
+    processed = Column(Boolean, nullable=False, default=False, index=True)
+    processed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
+class Refund(Base):
+    __tablename__ = "refunds"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    payment_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.payments.id", ondelete="CASCADE"), nullable=False)
+    razorpay_refund_id = Column(String(255), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    reason = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="pending")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    # Relationships
+    payment = relationship("Payment", backref="refunds")
+
 

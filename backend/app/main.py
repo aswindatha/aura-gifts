@@ -15,7 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.database import engine, SessionLocal
 from app.models import Base, User, Product
 
-from app.routers import auth, products, orders, chat, storage, rfid, cart
+from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config
 
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
@@ -142,6 +142,8 @@ app.include_router(chat.router)  # Register chat router
 app.include_router(storage.router) # Register storage router
 app.include_router(rfid.router)    # Register rfid router
 app.include_router(cart.router)     # Register cart router
+app.include_router(payments.router)   # Register payments router
+app.include_router(config.router)     # Register site config router
 
 # Create uploads directory if not exists
 os.makedirs("uploads", exist_ok=True)

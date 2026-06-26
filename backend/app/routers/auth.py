@@ -1,21 +1,22 @@
 import random
+from uuid import UUID
 import hashlib
 import os
 import hmac
 import asyncio
 import resend
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 
 from app.database import get_db
 from app.models import User, OTPRecord
 from app.schemas import (
     UserCreate, UserResponse, LoginRequest, TokenResponse,
     SendOTPRequest, VerifyOTPRequest, SubscribeRequest, StandardResponse,
-    ProfileUpdateRequest
+    ProfileUpdateRequest, AdminUserUpdate, AdminUserCreate
 )
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from app.config import settings
@@ -284,26 +285,36 @@ async def update_profile(
 @router.post("/subscribe", response_model=UserResponse)
 async def subscribe(payload: SubscribeRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     tier_str = payload.tier.strip()
-    
+
     rev_sub_map = {"none": 0, "student": 1, "silver": 2, "gold": 3, "premium": 4}
     tier_val = rev_sub_map.get(tier_str.lower(), 0)
-    
+
+    # Tier→duration in days (0 = cancel subscription)
+    tier_durations = {0: 0, 1: 30, 2: 30, 3: 90, 4: 365}
+    days = tier_durations.get(tier_val, 30)
+
     current_user.subscription_tier = tier_val
+    if tier_val == 0:
+        current_user.subscription_expires_at = None  # cancelled
+    else:
+        current_user.subscription_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
+
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)
-    
+
     return UserResponse.from_orm_model(current_user)
 
 @router.get("/users", response_model=List[UserResponse])
 async def list_users(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    search: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    List all users (Admin/Employee/Shopkeeper only).
+    List all users (Admin/Employee/Shopkeeper only) with optional search filter.
     """
     if current_user.role not in [1, 2, 3]:
         raise HTTPException(
@@ -320,8 +331,21 @@ async def list_users(
         User.role,
         User.points,
         User.subscription_tier,
+        User.photo_url,
+        User.id_proof_type,
+        User.id_proof_number,
         User.created_at
-    ).order_by(User.created_at.desc()).limit(limit).offset(offset)
+    )
+    
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.where(
+            User.name.ilike(search_term) |
+            User.email.ilike(search_term) |
+            User.phone.ilike(search_term)
+        )
+        
+    query = query.order_by(User.created_at.desc()).limit(limit).offset(offset)
     
     result = await db.execute(query)
     users = []
@@ -338,8 +362,128 @@ async def list_users(
                 role=ROLE_MAP.get(row.role, "user"),
                 points=row.points,
                 subscriptionTier=SUB_MAP.get(row.subscription_tier, "None"),
+                photo_url=row.photo_url,
+                id_proof_type=row.id_proof_type,
+                id_proof_number=row.id_proof_number,
                 created_at=row.created_at
             )
         )
         
     return users
+
+@router.post("/users", response_model=UserResponse)
+async def create_user_by_admin(
+    payload: AdminUserCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create a new user/subscriber (Admin/Employee/Shopkeeper only).
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+        
+    email = payload.email.strip().lower()
+    
+    # Check duplicate
+    exist_q = select(User).where(User.email == email)
+    exist_res = await db.execute(exist_q)
+    if exist_res.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered"
+        )
+        
+    # Reverse subscription tier
+    rev_sub_map = {"none": 0, "student": 1, "silver": 2, "gold": 3, "premium": 4}
+    tier_val = rev_sub_map.get(payload.subscriptionTier.lower(), 0)
+    tier_durations = {0: 0, 1: 30, 2: 30, 3: 90, 4: 365}
+    sub_expires = (
+        datetime.now(timezone.utc) + timedelta(days=tier_durations[tier_val])
+        if tier_val > 0 else None
+    )
+
+    # Default password Welcome123 hashed
+    hashed_pwd = get_password_hash("Welcome123")
+
+    new_user = User(
+        name=payload.name.strip(),
+        email=email,
+        phone=payload.phone.strip() if payload.phone else None,
+        address=payload.address.strip() if payload.address else None,
+        password_hash=hashed_pwd,
+        email_verified=True,
+        role=4, # user
+        points=0,
+        subscription_tier=tier_val,
+        subscription_expires_at=sub_expires,
+        photo_url=payload.photo_url,
+        id_proof_type=payload.id_proof_type,
+        id_proof_number=payload.id_proof_number
+    )
+    
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    
+    return UserResponse.from_orm_model(new_user)
+
+@router.put("/users/{user_id}", response_model=UserResponse)
+async def update_user_by_admin(
+    user_id: UUID,
+    payload: AdminUserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update a user profile and subscription tier (Admin/Employee/Shopkeeper only).
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+        
+    user_q = select(User).where(User.id == user_id)
+    user_res = await db.execute(user_q)
+    target_user = user_res.scalars().first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+        
+    if payload.name is not None:
+        target_user.name = payload.name.strip()
+    if payload.email is not None:
+        target_user.email = payload.email.strip().lower()
+    if payload.phone is not None:
+        target_user.phone = payload.phone.strip() if payload.phone else None
+    if payload.address is not None:
+        target_user.address = payload.address.strip() if payload.address else None
+    if payload.points is not None:
+        target_user.points = payload.points
+    if payload.subscriptionTier is not None:
+        rev_sub_map = {"none": 0, "student": 1, "silver": 2, "gold": 3, "premium": 4}
+        tier_val = rev_sub_map.get(payload.subscriptionTier.lower(), 0)
+        tier_durations = {0: 0, 1: 30, 2: 30, 3: 90, 4: 365}
+        target_user.subscription_tier = tier_val
+        target_user.subscription_expires_at = (
+            datetime.now(timezone.utc) + timedelta(days=tier_durations[tier_val])
+            if tier_val > 0 else None
+        )
+    if payload.photo_url is not None:
+        target_user.photo_url = payload.photo_url
+    if payload.id_proof_type is not None:
+        target_user.id_proof_type = payload.id_proof_type
+    if payload.id_proof_number is not None:
+        target_user.id_proof_number = payload.id_proof_number
+        
+    db.add(target_user)
+    await db.commit()
+    await db.refresh(target_user)
+    
+    return UserResponse.from_orm_model(target_user)
