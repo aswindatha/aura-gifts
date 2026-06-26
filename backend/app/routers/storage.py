@@ -79,6 +79,7 @@ class PresignedUrlResponse(BaseModel):
 @router.post("/presign", response_model=PresignedUrlResponse)
 async def generate_presigned_url(
     payload: PresignedUrlRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -108,8 +109,9 @@ async def generate_presigned_url(
 
     # Local Developer Mock Fallback Mode
     if check_is_mock():
-        upload_url = f"http://localhost:8000/api/storage/local-upload-mock?key={unique_key}"
-        public_url = f"http://localhost:8000/static/uploads/{unique_key}"
+        base_url = str(request.base_url).rstrip("/")
+        upload_url = f"{base_url}/api/storage/local-upload-mock?key={unique_key}"
+        public_url = f"{base_url}/static/uploads/{unique_key}"
         
         # Persist upload metadata in PostgreSQL
         media_file = MediaFile(
@@ -326,6 +328,7 @@ class PresignPartsResponse(BaseModel):
 @router.post("/multipart/presign-parts", response_model=PresignPartsResponse)
 async def presign_multipart_parts(
     payload: PresignPartsRequest,
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -333,9 +336,10 @@ async def presign_multipart_parts(
     """
     # Local Mock Mode
     if payload.upload_id.startswith("mock-upload-"):
+        base_url = str(request.base_url).rstrip("/")
         parts_list = []
         for part_num in payload.part_numbers:
-            url = f"http://localhost:8000/api/storage/local-multipart-upload-mock?key={payload.key}&part={part_num}&upload_id={payload.upload_id}"
+            url = f"{base_url}/api/storage/local-multipart-upload-mock?key={payload.key}&part={part_num}&upload_id={payload.upload_id}"
             parts_list.append(PresignedPart(part_number=part_num, upload_url=url))
         return PresignPartsResponse(parts=parts_list)
 
@@ -402,6 +406,7 @@ class MultipartCompleteResponse(BaseModel):
 @router.post("/multipart/complete", response_model=MultipartCompleteResponse)
 async def complete_multipart_upload(
     payload: MultipartCompleteRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -432,7 +437,8 @@ async def complete_multipart_upload(
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
 
-            public_url = f"http://localhost:8000/static/uploads/{payload.key}"
+            base_url = str(request.base_url).rstrip("/")
+            public_url = f"{base_url}/static/uploads/{payload.key}"
             
             # Register in database
             media_file = MediaFile(

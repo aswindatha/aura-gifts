@@ -1,0 +1,39 @@
+﻿# Sensitive files — NEVER include in Docker image
+.env
+.envold
+keys.md
+creadentials
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtualenvs
+venv/
+.venv/
+env/
+
+# Logs
+*.log
+api_responses.log
+
+# Local uploads (replaced by R2 in prod)
+uploads/
+
+# Git
+.git/
+.gitignore
+
+# Dev/scratch files
+data.sql
+verify_db.py
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

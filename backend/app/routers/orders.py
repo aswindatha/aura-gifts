@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -6,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.database import get_db
-from app.models import Order, OrderItem, User, ChatMessage
+from app.models import Order, OrderItem, User, ChatMessage, Cart, CartItem
 from app.schemas import OrderCreate, OrderResponse, OrderStatusUpdate, StandardResponse
 from app.auth import get_current_user
 
@@ -68,6 +69,17 @@ async def create_order(
         )
         db.add(welcome_msg)
         
+    # Clear database cart items for the user if a cart exists
+    try:
+        cart_q = select(Cart).where(Cart.user_id == current_user.id)
+        cart_res = await db.execute(cart_q)
+        cart_obj = cart_res.scalars().first()
+        if cart_obj:
+            clear_q = delete(CartItem).where(CartItem.cart_id == cart_obj.id)
+            await db.execute(clear_q)
+    except Exception as e:
+        print(f"[Checkout Error] Failed to clear database cart: {e}", flush=True)
+
     await db.commit()
     
     # Retrieve order with items loaded
@@ -146,6 +158,77 @@ async def update_order_status(
             )
             
     order.status = new_status_code
+    db.add(order)
+    await db.commit()
+    await db.refresh(order)
+    
+    return OrderResponse.from_orm_model(order)
+
+@router.get("/{order_id}", response_model=OrderResponse)
+async def get_order(
+    order_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get detailed information about a specific order.
+    Customers can only view their own; staff (admin, employee, shopkeeper) can view any.
+    """
+    query = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
+    result = await db.execute(query)
+    order = result.scalars().first()
+    
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+        
+    # Check permissions
+    if current_user.role == 4 and order.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this order"
+        )
+        
+    return OrderResponse.from_orm_model(order)
+
+@router.post("/{order_id}/cancel", response_model=OrderResponse)
+async def cancel_order(
+    order_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Cancel an order (customer owner action).
+    Can only cancel if still in pending_payment or processing status.
+    """
+    query = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
+    result = await db.execute(query)
+    order = result.scalars().first()
+    
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+        
+    # Check ownership
+    if order.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to cancel this order"
+        )
+        
+    # Can only cancel if status is 1 (Awaiting Payment) or 2 (Processing)
+    if order.status not in [1, 2]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Order cannot be cancelled at this stage"
+        )
+        
+    # Update status to 5 (Cancelled)
+    order.status = 5
     db.add(order)
     await db.commit()
     await db.refresh(order)

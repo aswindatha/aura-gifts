@@ -190,13 +190,26 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
             detail="Email is already registered"
         )
     
+    # Ensure email is verified via OTP
+    otp_q = select(OTPRecord).where(
+        OTPRecord.email == email,
+        OTPRecord.verified == True
+    ).order_by(OTPRecord.created_at.desc()).limit(1)
+    otp_res = await db.execute(otp_q)
+    otp_rec = otp_res.scalars().first()
+    if not otp_rec:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email verification required. Please verify OTP first."
+        )
+
     hashed_password = get_password_hash(payload.password)
     new_user = User(
         name=payload.name.strip(),
         email=email,
         phone=payload.phone.strip() if payload.phone else None,
         password_hash=hashed_password,
-        email_verified=False,
+        email_verified=True,  # Set to True since OTP was verified
         role=4,
         points=100,
         subscription_tier=0

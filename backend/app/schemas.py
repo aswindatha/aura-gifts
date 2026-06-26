@@ -242,3 +242,34 @@ class ChatMessageResponse(BaseModel):
             created_at=chat_obj.created_at,
             read_at=chat_obj.read_at,
         )
+
+
+# Cart Schemas
+class CartItemResponse(BaseModel):
+    id: UUID
+    product_id: int
+    name: str
+    price: float
+    quantity: int
+    unit_price: float
+    image_url: Optional[str] = None
+    category: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CartResponse(BaseModel):
+    items: list[CartItemResponse]
+    subtotal: float
+    tax: float
+    total: float
+
+
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: int = 1
+
+
+class CartItemUpdate(BaseModel):
+    quantity: int

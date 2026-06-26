@@ -37,12 +37,12 @@ class RFIDCard(Base):
     assigned_by = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id"), nullable=True)
 
 class OTPRecord(Base):
-    __tablename__ = "email_otps"
+    __tablename__ = "otps"
     __table_args__ = {"schema": "ecommerce"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), nullable=False, index=True)
-    otp_hash = Column(String(255), nullable=False)  # HMAC‑SHA256 hash
+    otp_hash = Column("otp_code", String(255), nullable=False)  # HMAC‑SHA256 hash stored in otp_code column
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     last_sent_at = Column(DateTime(timezone=True), default=datetime.utcnow)
@@ -133,9 +133,9 @@ class AuditLog(Base):
     __table_args__ = {"schema": "ecommerce"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    action = Column(String(100), nullable=False)
-    performed_by = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id"), nullable=False)
-    performed_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    action = Column(String(255), nullable=False)
+    performed_by = Column("user_id", UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="SET NULL"), nullable=True)
+    performed_at = Column("created_at", DateTime(timezone=True), default=datetime.utcnow)
     details = Column(JSON, nullable=True)
 
 
@@ -153,4 +153,33 @@ class MediaFile(Base):
     category = Column(String(50), nullable=False, index=True) # e.g. 'products', 'tasks', 'print-orders', 'book-prints', 'receipts'
     delete_after = Column(DateTime(timezone=True), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cart_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.carts.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("ecommerce.products.id", ondelete="CASCADE"), nullable=False, index=True)
+    quantity = Column(Integer, nullable=False)
+    unit_price = Column(Numeric(10, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    # Relationships
+    cart = relationship("Cart", back_populates="items")
+    product = relationship("Product")
 

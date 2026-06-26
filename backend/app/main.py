@@ -15,11 +15,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.database import engine, SessionLocal
 from app.models import Base, User, Product
 
-from app.routers import auth, products, orders, chat, storage
+from app.routers import auth, products, orders, chat, storage, rfid, cart
 
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
-LOG_FILE = os.path.join(os.path.dirname(__file__), "..", "api_responses.log")
+LOG_FILE = "/tmp/api_responses.log" if os.getenv("PRODUCTION", "0") == "1" else os.path.join(os.path.dirname(__file__), "..", "api_responses.log")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -117,9 +117,18 @@ app = FastAPI(title="Aura Prints API", description="FastAPI Backend for Aura Pri
 app.add_middleware(APILoggingMiddleware)
 
 # CORS middleware config to allow React client communication
+CORS_ORIGINS = (
+    [
+        "https://auraprintsandgifts.in",
+        "https://www.auraprintsandgifts.in",
+    ]
+    if os.getenv("PRODUCTION", "0") == "1"
+    else ["*"]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to specific Cloud Run or domain origins
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -131,6 +140,8 @@ app.include_router(products.router)
 app.include_router(orders.router)
 app.include_router(chat.router)  # Register chat router
 app.include_router(storage.router) # Register storage router
+app.include_router(rfid.router)    # Register rfid router
+app.include_router(cart.router)     # Register cart router
 
 # Create uploads directory if not exists
 os.makedirs("uploads", exist_ok=True)
