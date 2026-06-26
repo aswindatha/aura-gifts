@@ -1,0 +1,4 @@
+# Supabase PostgreSQL Async Connection String
+DATABASE_URL=postgresql+asyncpg://postgres:root@localhost:5432/postgres
+JWT_SECRET_KEY=aura-prints-development-secret-key-replace-in-production
+OTP_HMAC_SECRET=supersecretotpkey1234567890abcdef

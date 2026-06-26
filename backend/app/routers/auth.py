@@ -1,0 +1,332 @@
+import random
+import hashlib
+import os
+import hmac
+import asyncio
+import resend
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from typing import List
+
+from app.database import get_db
+from app.models import User, OTPRecord
+from app.schemas import (
+    UserCreate, UserResponse, LoginRequest, TokenResponse,
+    SendOTPRequest, VerifyOTPRequest, SubscribeRequest, StandardResponse,
+    ProfileUpdateRequest
+)
+from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
+from app.config import settings
+from app import constants
+from app.dependencies import rate_limiter
+
+router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+async def send_otp_email(email: str, otp_code: str):
+    """
+    Sends the OTP code to the user's email using Resend API.
+    """
+    if not settings.RESEND_API_KEY or settings.RESEND_API_KEY.startswith("re_xxxx"):
+        print(f"\n[Resend Mock] Skipping real email sending. OTP for {email} is: {otp_code}\n")
+        return
+
+    resend.api_key = settings.RESEND_API_KEY
+    try:
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None,
+            lambda: resend.Emails.send({
+                "from": "onboarding@resend.dev",
+                "to": email,
+                "subject": "Aura Prints - Email Verification Code",
+                "html": f"""
+                <div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+                    <h2 style="color: #3525cd; text-align: center;">Aura Prints &amp; Gifts</h2>
+                    <p>Hello,</p>
+                    <p>Thank you for choosing Aura Prints. Please use the verification code below to complete your registration or verification process:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #3525cd; background-color: #f0effd; padding: 10px 30px; border-radius: 6px; display: inline-block;">{otp_code}</span>
+                    </div>
+                    <p style="color: #666; font-size: 13px;">This code will expire in {settings.OTP_EXPIRE_MINUTES} minutes. If you did not request this code, please ignore this email.</p>
+                    <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 20px 0;">
+                    <p style="color: #999; font-size: 11px; text-align: center;">© 2026 Aura Prints &amp; Gifts. All rights reserved.</p>
+                </div>
+                """
+            })
+        )
+        print(f"[Resend] Sent OTP email successfully to {email}")
+    except Exception as e:
+        print(f"[Resend Error] Failed to send email via Resend to {email}: {e}")
+
+@router.post("/send-otp", response_model=StandardResponse, dependencies=[Depends(rate_limiter("send_otp", constants.RATE_LIMITS["send_otp"]))])
+async def send_otp(payload: SendOTPRequest, db: AsyncSession = Depends(get_db)):
+    email = payload.email.strip().lower()
+
+    # Daily limit: max OTP requests per email per day (configurable)
+    from sqlalchemy import func
+    start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_count_q = select(func.coalesce(func.sum(OTPRecord.resend_count), 0)).where(
+        OTPRecord.email == email,
+        OTPRecord.created_at >= start_of_day
+    )
+    daily_count_res = await db.execute(daily_count_q)
+    daily_count = daily_count_res.scalar_one()
+    if daily_count >= constants.MAX_OTP_PER_EMAIL_PER_DAY:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily OTP limit reached ({constants.MAX_OTP_PER_EMAIL_PER_DAY}/day)"
+        )
+
+    # Cooldown: 1 OTP per minute per email
+    recent_q = select(OTPRecord).where(
+        OTPRecord.email == email
+    ).order_by(OTPRecord.created_at.desc()).limit(1)
+    recent_res = await db.execute(recent_q)
+    recent_record = recent_res.scalars().first()
+    if False:
+        raise HTTPException(
+            status_code=429,
+            detail="Please wait before requesting another OTP (60s cooldown)"
+        )
+
+    # Check for existing unexpired OTP (reuse same record but update code)
+    existing_q = select(OTPRecord).where(
+        OTPRecord.email == email,
+        OTPRecord.expires_at > datetime.utcnow()
+    ).order_by(OTPRecord.created_at.desc()).limit(1)
+    existing_res = await db.execute(existing_q)
+    existing_record = existing_res.scalars().first()
+
+    # Generate new OTP code
+    otp_code = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.utcnow() + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
+    # HMAC-SHA256 hash using secret
+    secret = settings.OTP_HMAC_SECRET.encode()
+    otp_hash = hmac.new(secret, otp_code.encode(), hashlib.sha256).hexdigest()
+
+    if existing_record:
+        existing_record.otp_hash = otp_hash
+        existing_record.expires_at = expires_at
+        existing_record.resend_count += 1
+        existing_record.last_sent_at = datetime.utcnow()
+        db.add(existing_record)
+        await db.commit()
+        await send_otp_email(email, otp_code)
+        return StandardResponse(success=True, message="OTP resent successfully")
+
+    # New record
+    otp_record = OTPRecord(
+        email=email,
+        otp_hash=otp_hash,
+        expires_at=expires_at,
+        resend_count=1,
+        last_sent_at=datetime.utcnow()
+    )
+    db.add(otp_record)
+    await db.commit()
+
+    await send_otp_email(email, otp_code)
+
+    return StandardResponse(success=True, message="OTP sent successfully")
+
+@router.post("/verify-otp", response_model=StandardResponse)
+async def verify_otp(payload: VerifyOTPRequest, db: AsyncSession = Depends(get_db)):
+    email = payload.email.strip().lower()
+    otp_code = payload.otp.strip()
+    
+    # Fetch latest unverified, unexpired OTP
+    query = select(OTPRecord).where(
+        OTPRecord.email == email,
+        OTPRecord.expires_at > datetime.utcnow(),
+        OTPRecord.verified == False
+    ).order_by(OTPRecord.created_at.desc()).limit(1)
+    
+    result = await db.execute(query)
+    record = result.scalars().first()
+    
+    if not record:
+        return StandardResponse(success=False, message="Invalid or expired OTP code")
+    
+    # Increment attempts
+    record.attempts += 1
+    if record.attempts >= 5:
+        db.add(record)
+        await db.commit()
+        raise HTTPException(status_code=429, detail="Too many OTP attempts")
+    
+    # Verify HMAC-SHA256 hash using secret
+    secret = settings.OTP_HMAC_SECRET.encode()
+    expected_hash = hmac.new(secret, otp_code.encode(), hashlib.sha256).hexdigest()
+    if expected_hash != record.otp_hash:
+        db.add(record)
+        await db.commit()
+        return StandardResponse(success=False, message="Invalid or expired OTP code")
+    
+    # Successful verification
+    record.verified = True
+    user_query = select(User).where(User.email == email)
+    user_res = await db.execute(user_query)
+    user_obj = user_res.scalars().first()
+    if user_obj:
+        user_obj.email_verified = True
+        db.add(user_obj)
+    db.add(record)
+    await db.commit()
+    
+    return StandardResponse(success=True, message="OTP verified successfully")
+
+@router.post("/register", response_model=TokenResponse)
+async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
+    email = payload.email.strip().lower()
+    
+    # Check duplicate email
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+    if result.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered"
+        )
+    
+    hashed_password = get_password_hash(payload.password)
+    new_user = User(
+        name=payload.name.strip(),
+        email=email,
+        phone=payload.phone.strip() if payload.phone else None,
+        password_hash=hashed_password,
+        email_verified=False,
+        role=4,
+        points=100,
+        subscription_tier=0
+    )
+    
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    
+    access_token = create_access_token(data={"sub": str(new_user.id)})
+    
+    return TokenResponse(
+        access_token=access_token,
+        user=UserResponse.from_orm_model(new_user)
+    )
+
+@router.post("/login", response_model=TokenResponse)
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    email = payload.email.strip().lower()
+    
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email before login"
+        )
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return TokenResponse(
+        access_token=access_token,
+        user=UserResponse.from_orm_model(user)
+    )
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return UserResponse.from_orm_model(current_user)
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    payload: ProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if payload.name is not None:
+        current_user.name = payload.name.strip()
+    if payload.phone is not None:
+        current_user.phone = payload.phone.strip() if payload.phone else None
+    if payload.address is not None:
+        current_user.address = payload.address.strip() if payload.address else None
+        
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    
+    return UserResponse.from_orm_model(current_user)
+
+@router.post("/subscribe", response_model=UserResponse)
+async def subscribe(payload: SubscribeRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    tier_str = payload.tier.strip()
+    
+    rev_sub_map = {"none": 0, "student": 1, "silver": 2, "gold": 3, "premium": 4}
+    tier_val = rev_sub_map.get(tier_str.lower(), 0)
+    
+    current_user.subscription_tier = tier_val
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    
+    return UserResponse.from_orm_model(current_user)
+
+@router.get("/users", response_model=List[UserResponse])
+async def list_users(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all users (Admin/Employee/Shopkeeper only).
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    query = select(
+        User.id,
+        User.name,
+        User.email,
+        User.phone,
+        User.address,
+        User.role,
+        User.points,
+        User.subscription_tier,
+        User.created_at
+    ).order_by(User.created_at.desc()).limit(limit).offset(offset)
+    
+    result = await db.execute(query)
+    users = []
+    
+    for row in result.all():
+        from app.schemas import ROLE_MAP, SUB_MAP
+        users.append(
+            UserResponse(
+                id=row.id,
+                name=row.name,
+                email=row.email,
+                phone=row.phone,
+                address=row.address,
+                role=ROLE_MAP.get(row.role, "user"),
+                points=row.points,
+                subscriptionTier=SUB_MAP.get(row.subscription_tier, "None"),
+                created_at=row.created_at
+            )
+        )
+        
+    return users

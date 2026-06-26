@@ -1,0 +1,60 @@
+=======================================================
+AURA PRINTS - SYSTEM TEST CREDENTIALS
+=======================================================
+
+1. SYSTEM ADMINISTRATOR / SHOP KEEPER
+-------------------------------------------------------
+Identity/Email : admin@auraprints.com
+Password       : aura@2024
+Role           : Admin / Shop Keeper
+Privileges     : Accesses Admin Dashboard (/admin)
+                 Logistics, Inventory, Payments, RFID,
+                 and order tracking/fulfillment panels.
+
+2. REGISTERED CUSTOMER (PREMIUM MEMBER)
+-------------------------------------------------------
+Identity/Email : customer@auraprints.com
+Password       : customer123
+Role           : Customer (user)
+Name           : Jane Doe
+Mobile/Phone   : 9876543210
+Loyalty Points : 450
+Subscription   : Premium
+
+3. REGISTERED CUSTOMER (STUDENT MEMBER)
+-------------------------------------------------------
+Identity/Email : student@auraprints.com
+Password       : student123
+Role           : Customer (user)
+Name           : Alex Patel
+Mobile/Phone   : 9876543211
+Loyalty Points : 150
+Subscription   : Student
+
+4. GUEST CUSTOMER
+-------------------------------------------------------
+No email or password needed. Click "Continue as Guest"
+on the login portal to browse and purchase items in
+guest mode.
+
+5. STAFF / EMPLOYEE (DAVE OPERATOR)
+-------------------------------------------------------
+Identity/Email : dave@auraprints.com
+Password       : dave123
+Role           : Employee (operator)
+Privileges     : Accesses Employee Task Board (/employee/tasks)
+                 to claim and complete production steps.
+
+6. SHOP KEEPER (PUSHPAVEL)
+-------------------------------------------------------
+Identity/Email : pushpa@auraprints.com
+Password       : shopkeeper123
+Role           : Shopkeeper (PUSHPAVEL)
+Privileges     : Accesses Shopkeeper Command Center (/shopkeeper)
+                 to manage billing, verify payments, track order pipelines,
+                 view transaction logs, and respond to customer queries.
+
+
+
+# Sample Data File
+Data file: backend/data.sql
