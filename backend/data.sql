@@ -7,6 +7,7 @@ TRUNCATE TABLE ecommerce.users RESTART IDENTITY CASCADE;
 TRUNCATE TABLE ecommerce.products RESTART IDENTITY CASCADE;
 TRUNCATE TABLE maintenance.machinery RESTART IDENTITY CASCADE;
 TRUNCATE TABLE ecommerce.otps RESTART IDENTITY CASCADE;
+TRUNCATE TABLE ecommerce.media_files RESTART IDENTITY CASCADE;
 TRUNCATE TABLE ecommerce.payments RESTART IDENTITY CASCADE;
 TRUNCATE TABLE ecommerce.webhook_events RESTART IDENTITY CASCADE;
 TRUNCATE TABLE ecommerce.refunds RESTART IDENTITY CASCADE;
@@ -622,6 +623,19 @@ INSERT INTO maintenance.repair_logs (
 ) SELECT
     (SELECT id FROM mach), 'Nozzle clog', 'Replaced nozzle and cleaned extrusion path', 'Tech Raj', 150.00, 'https://example.com/repair_log_3dprinter.pdf';
 
--- 6. OTPs – Example one‑time code for Jane Customer (expires in 10 minutes)
-INSERT INTO ecommerce.otps (email, otp_code, expires_at)
-VALUES ('customer@auraprints.com', '123456', NOW() + INTERVAL '10 minutes');
+-- 6. OTPs – Example verified OTP record for Jane Customer
+-- NOTE: otp_code stores an HMAC-SHA256 hex digest, NOT the raw 6-digit code.
+-- The hash below corresponds to OTP "123456" signed with the secret "test-secret".
+-- In production, the backend generates this hash automatically via routers/auth.py.
+-- To generate a valid hash for testing:
+--   python3 -c "import hmac, hashlib; print(hmac.new(b'otp-hmac-secret-hfbvqihrv-rqeg4rv-reqf34fveqb-h45bwteqg5', b'123456', hashlib.sha256).hexdigest())"
+INSERT INTO ecommerce.otps (email, otp_code, expires_at, last_sent_at, attempts, verified, resend_count)
+VALUES (
+    'customer@auraprints.com',
+    'a8c9e5b2f1d3a4b6c7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0',  -- placeholder hash
+    NOW() + INTERVAL '10 minutes',
+    NOW(),
+    0,
+    FALSE,
+    1
+);
