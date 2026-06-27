@@ -4,14 +4,8 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE SCHEMA IF NOT EXISTS auth;
-
-CREATE OR REPLACE FUNCTION auth.uid()
-RETURNS uuid
-LANGUAGE sql STABLE
-AS $$
-  select nullif(current_setting('request.jwt.claims', true)::json->>'sub', '')::uuid;
-$$;
+-- NOTE: The `auth` schema and `auth.uid()` function are managed by Supabase.
+-- Do NOT re-create them here — Supabase provides them natively.
 
 CREATE SCHEMA IF NOT EXISTS ecommerce;
 CREATE SCHEMA IF NOT EXISTS maintenance;
@@ -90,9 +84,13 @@ CREATE TABLE IF NOT EXISTS ecommerce.site_config (
 CREATE TABLE IF NOT EXISTS ecommerce.otps (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) NOT NULL,                        -- Email address to verify
-    otp_code VARCHAR(6) NOT NULL,                       -- 6‑digit numeric code
+    otp_code VARCHAR(255) NOT NULL,                     -- HMAC-SHA256 hash of the OTP (never plain text)
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,       -- Expiry timestamp
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, -- Last time OTP was (re)sent
+    attempts INTEGER NOT NULL DEFAULT 0,                -- Number of failed verification attempts
+    verified BOOLEAN NOT NULL DEFAULT FALSE,            -- TRUE once successfully verified
+    resend_count INTEGER NOT NULL DEFAULT 1             -- How many times OTP was resent
 );
 
 CREATE INDEX IF NOT EXISTS idx_otps_email ON ecommerce.otps(email);
@@ -159,8 +157,8 @@ CREATE TABLE IF NOT EXISTS ecommerce.cart_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_cart_items_cart_id ON ecommerce.cart_items(cart_id);
-CREATE INDEX idx_cart_items_product_id ON ecommerce.cart_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_cart_id ON ecommerce.cart_items(cart_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_product_id ON ecommerce.cart_items(product_id);
 
 -- -----------------------------------------------------------------------------
 -- 2.5 Orders Table (ecommerce.orders)
@@ -194,8 +192,8 @@ CREATE TABLE IF NOT EXISTS ecommerce.orders (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_orders_user_id ON ecommerce.orders(user_id);
-CREATE INDEX idx_orders_status ON ecommerce.orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON ecommerce.orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON ecommerce.orders(status);
 
 CREATE TRIGGER trg_orders_updated_at
     BEFORE UPDATE ON ecommerce.orders
@@ -220,7 +218,7 @@ CREATE TABLE IF NOT EXISTS ecommerce.order_items (
     uploaded_file_url TEXT                             -- If customer uploaded a file for customisation
 );
 
-CREATE INDEX idx_order_items_order_id ON ecommerce.order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON ecommerce.order_items(order_id);
 
 -- -----------------------------------------------------------------------------
 -- 2.7 Chat Messages Table (ecommerce.chat_messages)
@@ -240,25 +238,29 @@ CREATE TABLE IF NOT EXISTS ecommerce.chat_messages (
     read_at TIMESTAMP WITH TIME ZONE                   -- Null until read by support
 );
 
-CREATE INDEX idx_chat_messages_order_id ON ecommerce.chat_messages(order_id);
-CREATE INDEX idx_chat_messages_created_at ON ecommerce.chat_messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_order_id ON ecommerce.chat_messages(order_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON ecommerce.chat_messages(created_at);
 
 -- -----------------------------------------------------------------------------
 -- 2.8 RFID Loyalty Cards (ecommerce.rfid_cards)
 -- -----------------------------------------------------------------------------
--- Assigns a unique RFID UID to a user. One‑to‑one mapping (user ↔ card).
--- assigned_by tracks who performed the assignment (admin/employee/shopkeeper).
+-- Tracks historical card assignments. is_active=TRUE means the card is currently
+-- assigned. Partial unique indexes enforce one active card per user and per UID.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS ecommerce.rfid_cards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID UNIQUE NOT NULL REFERENCES ecommerce.users(id) ON DELETE RESTRICT,
-    rfid_uid VARCHAR(255) UNIQUE NOT NULL,            -- Physical card UID
+    user_id UUID NOT NULL REFERENCES ecommerce.users(id) ON DELETE RESTRICT,
+    rfid_uid VARCHAR(255) NOT NULL,                   -- Physical card UID
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,          -- FALSE = deactivated/replaced
+    deactivated_at TIMESTAMP WITH TIME ZONE,          -- When the card was deactivated
     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     assigned_by UUID REFERENCES ecommerce.users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_rfid_user_id ON ecommerce.rfid_cards(user_id);
-CREATE INDEX idx_rfid_uid ON ecommerce.rfid_cards(rfid_uid);
+CREATE INDEX IF NOT EXISTS idx_rfid_cards_user_id ON ecommerce.rfid_cards(user_id);
+CREATE INDEX IF NOT EXISTS idx_rfid_cards_rfid_uid ON ecommerce.rfid_cards(rfid_uid);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_rfid_cards_active_uid  ON ecommerce.rfid_cards(rfid_uid) WHERE (is_active = TRUE);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_rfid_cards_active_user ON ecommerce.rfid_cards(user_id)  WHERE (is_active = TRUE);
 
 -- -----------------------------------------------------------------------------
 -- 2.9 Audit Logs (ecommerce.audit_logs)
@@ -274,8 +276,8 @@ CREATE TABLE IF NOT EXISTS ecommerce.audit_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_audit_user_id ON ecommerce.audit_logs(user_id);
-CREATE INDEX idx_audit_created_at ON ecommerce.audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_user_id ON ecommerce.audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created_at ON ecommerce.audit_logs(created_at);
 
 -- =============================================================================
 -- 3. MAINTENANCE DOMAIN TABLES (for internal staff)
@@ -294,7 +296,7 @@ CREATE TABLE IF NOT EXISTS maintenance.machinery (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_machinery_status ON maintenance.machinery(status);
+CREATE INDEX IF NOT EXISTS idx_machinery_status ON maintenance.machinery(status);
 
 -- 3.2 Repair Logs (maintenance.repair_logs)
 -- -----------------------------------------------------------------------------
@@ -309,7 +311,7 @@ CREATE TABLE IF NOT EXISTS maintenance.repair_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_repair_logs_machinery ON maintenance.repair_logs(machinery_id);
+CREATE INDEX IF NOT EXISTS idx_repair_logs_machinery ON maintenance.repair_logs(machinery_id);
 
 -- =============================================================================
 -- 4. ROW‑LEVEL SECURITY (RLS) – ZERO‑TRUST PRINCIPLE
@@ -540,22 +542,28 @@ CREATE TABLE IF NOT EXISTS ecommerce.refunds (
 );
 
 -- -----------------------------------------------------------------------------
--- 2.12 RFID Cards Table (ecommerce.rfid_cards)
+-- 2.12 Media Files Table (ecommerce.media_files)
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS ecommerce.rfid_cards (
+-- Tracks all uploaded files (product images, receipts, print orders, etc.).
+-- object_key is the unique S3/R2 key. delete_after enables TTL-based cleanup.
+-- category values: 'products', 'tasks', 'print-orders', 'book-prints', 'receipts'
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ecommerce.media_files (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES ecommerce.users(id) ON DELETE RESTRICT,
-    rfid_uid VARCHAR(255) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    deactivated_at TIMESTAMP WITH TIME ZONE,
-    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    assigned_by UUID REFERENCES ecommerce.users(id) ON DELETE SET NULL
+    order_id UUID REFERENCES ecommerce.orders(id) ON DELETE SET NULL,
+    object_key VARCHAR(500) UNIQUE NOT NULL,           -- S3/R2 object key
+    mime_type VARCHAR(100) NOT NULL,
+    size INTEGER,                                      -- File size in bytes
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    category VARCHAR(50) NOT NULL,                    -- e.g. 'products', 'receipts'
+    delete_after TIMESTAMP WITH TIME ZONE,            -- Optional TTL expiry
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_rfid_cards_user_id ON ecommerce.rfid_cards(user_id);
-CREATE INDEX IF NOT EXISTS idx_rfid_cards_rfid_uid ON ecommerce.rfid_cards(rfid_uid);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_rfid_cards_active_uid ON ecommerce.rfid_cards(rfid_uid) WHERE (is_active = TRUE);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_rfid_cards_active_user ON ecommerce.rfid_cards(user_id) WHERE (is_active = TRUE);
+CREATE INDEX IF NOT EXISTS idx_media_files_order_id ON ecommerce.media_files(order_id);
+CREATE INDEX IF NOT EXISTS idx_media_files_object_key ON ecommerce.media_files(object_key);
+CREATE INDEX IF NOT EXISTS idx_media_files_category ON ecommerce.media_files(category);
+CREATE INDEX IF NOT EXISTS idx_media_files_delete_after ON ecommerce.media_files(delete_after);
 
 -- -----------------------------------------------------------------------------
 -- 2.13 RFID Scan Logs Table (ecommerce.rfid_scan_logs)

@@ -757,16 +757,23 @@ async def seed_database(db):
 
 @app.on_event("startup")
 async def on_startup():
+    from app.config import settings as _settings
     try:
         async with engine.begin() as conn:
-            # Create isolated schemas before metadata creation
-            await conn.execute(text("CREATE SCHEMA IF NOT EXISTS ecommerce;"))
-            await conn.execute(text("CREATE SCHEMA IF NOT EXISTS maintenance;"))
-            await conn.run_sync(Base.metadata.create_all)
-            
+            if not _settings.IS_PRODUCTION:
+                # Dev only: auto-create schemas and tables via SQLAlchemy models.
+                # In production, schema.sql handles table creation with RLS policies.
+                await conn.execute(text("CREATE SCHEMA IF NOT EXISTS ecommerce;"))
+                await conn.execute(text("CREATE SCHEMA IF NOT EXISTS maintenance;"))
+                await conn.run_sync(Base.metadata.create_all)
+            else:
+                # Production: schemas & tables already exist from schema.sql upload.
+                # Just verify the connection is alive.
+                await conn.execute(text("SELECT 1;"))
+
         async with SessionLocal() as session:
             await seed_database(session)
-            
+
         # Start keep-alive daemon loop
         asyncio.create_task(keep_alive_loop())
     except Exception as e:
