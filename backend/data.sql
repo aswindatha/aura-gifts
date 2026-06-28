@@ -639,3 +639,113 @@ VALUES (
     FALSE,
     1
 );
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 7. Site Config – Banners & Subscription Plans
+-- These rows feed /api/config/banners and /api/config/subscription_plans.
+-- Without them every GET returns 404, which triggers the admin toast loop.
+-- ON CONFLICT DO NOTHING makes this re-runnable without overwriting edits.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+INSERT INTO ecommerce.site_config (key, value, updated_by, updated_at)
+VALUES
+(
+  'banners',
+  '[
+    {
+      "id": "b1",
+      "title": "Premium Frames",
+      "titleHtml": "Premium <span>Frames</span>",
+      "desc": "Elevate your space with handcrafted teakwood, walnut, and gold frames.",
+      "badge": "New Collection",
+      "image": "",
+      "actionText": "Shop Frames",
+      "actionPath": "/shop",
+      "emoji": "\ud83d\uddbc\ufe0f",
+      "bgClass": "s1"
+    },
+    {
+      "id": "b2",
+      "title": "Fine Art Prints",
+      "titleHtml": "Fine Art <span>Prints</span>",
+      "desc": "Professional 260 gsm lustre prints with archival pigment inks. Colours that last 100+ years.",
+      "badge": "Bestseller",
+      "image": "",
+      "actionText": "Order Prints",
+      "actionPath": "/shop",
+      "emoji": "\ud83c\udfa8",
+      "bgClass": "s2"
+    },
+    {
+      "id": "b3",
+      "title": "Gifting Essentials",
+      "titleHtml": "Gifting <span>Essentials</span>",
+      "desc": "From brass desk clocks to leather journals — gifts that make lasting impressions.",
+      "badge": "Hot Picks",
+      "image": "",
+      "actionText": "Explore Gifts",
+      "actionPath": "/shop",
+      "emoji": "\ud83c\udf81",
+      "bgClass": "s3"
+    }
+  ]'::jsonb,
+  (SELECT id FROM ecommerce.users WHERE role = 1 LIMIT 1),
+  NOW()
+),
+(
+  'subscription_plans',
+  '[
+    {
+      "id": "plan_student",
+      "tier": "Student",
+      "badge": "Starter",
+      "price": 199,
+      "duration": "per month",
+      "color": "#4648d4",
+      "tierCode": 1,
+      "features": [
+        "5% discount on all orders",
+        "Priority email support",
+        "Access to student exclusive designs",
+        "Early access to new products"
+      ]
+    },
+    {
+      "id": "plan_premium",
+      "tier": "Premium",
+      "badge": "Most Popular",
+      "price": 499,
+      "duration": "per month",
+      "color": "#7c3aed",
+      "tierCode": 2,
+      "features": [
+        "15% discount on all orders",
+        "Free standard delivery on every order",
+        "Priority customer support (chat + email)",
+        "Exclusive premium design collection",
+        "Early access to new arrivals"
+      ]
+    },
+    {
+      "id": "plan_enterprise",
+      "tier": "Enterprise",
+      "badge": "Best Value",
+      "price": 1299,
+      "duration": "per month",
+      "color": "#d97706",
+      "tierCode": 3,
+      "features": [
+        "25% discount on bulk orders",
+        "Dedicated account manager",
+        "Custom branding on prints",
+        "Free express delivery on all orders",
+        "White-label invoicing support",
+        "API access for order automation"
+      ]
+    }
+  ]'::jsonb,
+  (SELECT id FROM ecommerce.users WHERE role = 1 LIMIT 1),
+  NOW()
+)
+ON CONFLICT (key) DO NOTHING;
+
