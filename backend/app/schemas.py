@@ -213,6 +213,7 @@ class OrderResponse(BaseModel):
     city: str
     pin_code: str
     phone_number: str
+    pipeline_steps: Optional[list] = None
     created_at: datetime
     items: list[OrderItemResponse]
 
@@ -234,6 +235,7 @@ class OrderResponse(BaseModel):
             city=order_obj.city,
             pin_code=order_obj.pin_code,
             phone_number=order_obj.phone_number,
+            pipeline_steps=order_obj.pipeline_steps or [],
             created_at=order_obj.created_at,
             items=[OrderItemResponse.model_validate(item) for item in order_obj.items]
         )

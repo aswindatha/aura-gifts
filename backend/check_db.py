@@ -9,14 +9,14 @@ async def main():
     
     async with engine.connect() as conn:
         try:
-            # Query all users in ecommerce.users
-            result = await conn.execute(text("SELECT id, name, email, role FROM ecommerce.users"))
-            users = result.fetchall()
-            print("Found users:")
-            for user in users:
-                print(f"ID: {user[0]}, Name: {user[1]}, Email: {user[2]}, Role: {user[3]}")
+            # Query all config in ecommerce.site_config
+            result = await conn.execute(text("SELECT key, value FROM ecommerce.site_config"))
+            configs = result.fetchall()
+            print("Found configs:")
+            for config in configs:
+                print(f"Key: {config[0]}, Value length: {len(str(config[1]))}")
         except Exception as e:
-            print(f"Error querying users: {e}")
+            print(f"Error querying config: {e}")
             
     await engine.dispose()
 

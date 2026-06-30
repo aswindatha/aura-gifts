@@ -50,17 +50,34 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
 
         start = time.perf_counter()
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # Capture request body for logging
-        req_body_bytes = await request.body()
-        try:
-            req_json = json.loads(req_body_bytes.decode())
-            # Mask secrets
-            for secret in ["password", "access_token", "refresh_token", "otp"]:
-                if secret in req_json:
-                    req_json[secret] = "***"
-            req_body_pretty = json.dumps(req_json, indent=2)
-        except Exception:
-            req_body_pretty = req_body_bytes.decode(errors="ignore")[:5000]
+        # Capture request body for logging (skip large/binary file uploads)
+        content_type = request.headers.get("content-type", "")
+        content_length = request.headers.get("content-length")
+        
+        should_read_body = False
+        if "application/json" in content_type:
+            should_read_body = True
+            if content_length:
+                try:
+                    if int(content_length) > 1 * 1024 * 1024:  # 1MB limit
+                        should_read_body = False
+                except ValueError:
+                    pass
+                    
+        req_body_pretty = ""
+        if should_read_body:
+            req_body_bytes = await request.body()
+            try:
+                req_json = json.loads(req_body_bytes.decode())
+                # Mask secrets
+                for secret in ["password", "access_token", "refresh_token", "otp"]:
+                    if secret in req_json:
+                        req_json[secret] = "***"
+                req_body_pretty = json.dumps(req_json, indent=2)
+            except Exception:
+                req_body_pretty = req_body_bytes.decode(errors="ignore")[:5000]
+        else:
+            req_body_pretty = f"<Payload omitted: content_type={content_type}, size={content_length}>"
 
         # Capture response body for product endpoints
         response: Response = await call_next(request)
@@ -755,6 +772,54 @@ async def seed_database(db):
         await db.commit()
         print("[Seed] Products seed data successfully populated.")
 
+    # Seed Config (Banners)
+    config_result = await db.execute(text("SELECT key FROM ecommerce.site_config WHERE key = 'banners'"))
+    if not config_result.first():
+        default_banners = [
+            {
+                "id": "b1",
+                "title": "Premium Document Quick Print",
+                "titleHtml": "Premium Document <span>Quick Print</span>",
+                "desc": "High-fidelity quick prints on select quality paper weights for all your needs.",
+                "badge": "Hot Offer",
+                "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDTvXYHmtnxtTPr3cp9eXMQWBs-X7SxdsN74Fsi8cQcGV1_jukaC8BJoVwBwmxhsdrglf513-nigeMmK0hMCHRp7n-eot_J7D0jkjA4YOCMam-xxKNfEgVayhCoN4qxlbDFBnjpe3jAh7DFq98gEaf_ED3DBoXcszF0vzAP2V5Y0Wsebo1euRgKMav_oGqk3e_KoyAMLQMlLmNAdJYwADrYgxKesL3SWrLnENA3FpztGtTMRNgFCIwObR9SLm44dnsNsPofrj67dFM",
+                "actionPath": "/quick-prints",
+                "actionText": "Upload & Quick Print",
+                "emoji": "📄",
+                "bgClass": "s2"
+            },
+            {
+                "id": "b2",
+                "title": "Executive Stationery",
+                "titleHtml": "Executive <span>Stationery</span>",
+                "desc": "Elegant writing tools crafted with brass and solid resin, perfect for gifts.",
+                "badge": "Best Seller",
+                "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg",
+                "actionPath": "/product/2",
+                "actionText": "Buy Now",
+                "emoji": "✒️",
+                "bgClass": "s3"
+            },
+            {
+                "id": "b3",
+                "title": "Curated RFID Subscription",
+                "titleHtml": "Aura Premium <span>RFID Plans</span>",
+                "desc": "Unlock free museum-grade quick prints, custom matting, and automatic loyalty benefits.",
+                "badge": "Club Member",
+                "image": "/logo.jpeg",
+                "actionPath": "/subscriptions",
+                "actionText": "Browse Plans",
+                "emoji": "💎",
+                "bgClass": "s4"
+            }
+        ]
+        await db.execute(
+            text("INSERT INTO ecommerce.site_config (key, value) VALUES ('banners', :v::jsonb)"),
+            {"v": json.dumps(default_banners)}
+        )
+        await db.commit()
+        print("[Seed] Default site config banners successfully populated.")
+
 @app.on_event("startup")
 async def on_startup():
     from app.config import settings as _settings
@@ -766,6 +831,17 @@ async def on_startup():
                 await conn.execute(text("CREATE SCHEMA IF NOT EXISTS ecommerce;"))
                 await conn.execute(text("CREATE SCHEMA IF NOT EXISTS maintenance;"))
                 await conn.run_sync(Base.metadata.create_all)
+                # Ensure the pipeline_steps column exists on the orders table
+                await conn.execute(text("ALTER TABLE ecommerce.orders ADD COLUMN IF NOT EXISTS pipeline_steps JSONB;"))
+                # Create site_config if not exists (raw SQL table since no SQLAlchemy model is mapped)
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS ecommerce.site_config (
+                        key TEXT PRIMARY KEY,
+                        value JSONB NOT NULL DEFAULT '{}',
+                        updated_by UUID REFERENCES ecommerce.users(id) ON DELETE SET NULL,
+                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    );
+                """))
             else:
                 # Production: schemas & tables already exist from schema.sql upload.
                 # Just verify the connection is alive.

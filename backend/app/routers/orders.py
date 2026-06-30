@@ -9,6 +9,8 @@ from uuid import UUID
 from app.database import get_db
 from app.models import Order, OrderItem, User, ChatMessage, Cart, CartItem
 from app.schemas import OrderCreate, OrderResponse, OrderStatusUpdate, StandardResponse
+from app.constants import OrderStatus
+from sqlalchemy import delete
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -158,6 +160,8 @@ async def update_order_status(
             )
             
     order.status = new_status_code
+    if new_status_code == 4: # 4 = Delivered (from ORDER_STATUS_MAP)
+        await db.execute(delete(ChatMessage).where(ChatMessage.order_id == order.id))
     db.add(order)
     await db.commit()
     await db.refresh(order)
@@ -229,6 +233,44 @@ async def cancel_order(
         
     # Update status to 5 (Cancelled)
     order.status = 5
+    db.add(order)
+    await db.commit()
+    await db.refresh(order)
+    
+    return OrderResponse.from_orm_model(order)
+
+from pydantic import BaseModel
+
+class PipelineStepsUpdate(BaseModel):
+    steps: list
+
+@router.put("/{order_id}/pipeline", response_model=OrderResponse)
+async def update_order_pipeline(
+    order_id: UUID,
+    payload: PipelineStepsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update the pipeline steps for a specific order (Admin/Shopkeeper/Staff only).
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+        
+    query = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
+    result = await db.execute(query)
+    order = result.scalars().first()
+    
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+        
+    order.pipeline_steps = payload.steps
     db.add(order)
     await db.commit()
     await db.refresh(order)

@@ -113,6 +113,7 @@ class Order(Base):
     city = Column(String(100), nullable=False)
     pin_code = Column(String(20), nullable=False)
     phone_number = Column(String(50), nullable=False)
+    pipeline_steps = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
     # Relationships
