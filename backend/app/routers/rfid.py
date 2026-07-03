@@ -29,7 +29,7 @@ async def lookup_rfid_by_uid(
     return the linked user + subscription status. Joins user and rfid_cards in a single query.
     Logs every tap event to the rfid_scan_logs table.
     """
-    if current_user.role not in [1, 2]:
+    if current_user.role not in [1, 2, 3]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     # Normalise UID: strip whitespace, uppercase

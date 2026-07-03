@@ -3,7 +3,7 @@ import json
 import logging
 import time
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +13,7 @@ from sqlalchemy.future import select
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.database import engine, SessionLocal
-from app.models import Base, User, Product
+from app.models import Base, User, Product, RFIDCard
 
 from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config
 
@@ -195,6 +195,7 @@ async def seed_database(db):
                 role=4,
                 points=450,
                 subscription_tier=4,
+                subscription_expires_at=datetime(2036, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 address="123 Artisan Way, Apt 4B, Mumbai, MH - 400001"
             ),
             User(
@@ -231,6 +232,22 @@ async def seed_database(db):
         db.add_all(default_users)
         await db.commit()
         print("[Seed] Users seed data successfully populated.")
+
+    # Seed RFID Card mapping 0A65E006 to Jane Doe
+    rfid_result = await db.execute(select(RFIDCard).limit(1))
+    if not rfid_result.scalars().first():
+        res = await db.execute(select(User).where(User.email == "customer@auraprints.com"))
+        jane = res.scalars().first()
+        if jane:
+            jane_card = RFIDCard(
+                user_id=jane.id,
+                rfid_uid="0A65E006",
+                is_active=True,
+                assigned_at=datetime.now(timezone.utc)
+            )
+            db.add(jane_card)
+            await db.commit()
+            print("[Seed] RFID card 0A65E006 successfully seeded for Jane Doe.")
 
 
     # Seed Products

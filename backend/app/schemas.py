@@ -24,6 +24,8 @@ class UserResponse(BaseModel):
     role: str
     points: int
     subscriptionTier: str
+    subscriptionTierCode: int = 0          # raw int 0-4 for edit forms
+    subscriptionExpiresAt: Optional[datetime] = None  # UTC, for row colouring
     photo_url: Optional[str] = None
     id_proof_type: Optional[str] = None
     id_proof_number: Optional[str] = None
@@ -43,6 +45,8 @@ class UserResponse(BaseModel):
             role=ROLE_MAP.get(user_obj.role, "user"),
             points=user_obj.points,
             subscriptionTier=SUB_MAP.get(user_obj.subscription_tier, "None"),
+            subscriptionTierCode=user_obj.subscription_tier,
+            subscriptionExpiresAt=getattr(user_obj, "subscription_expires_at", None),
             photo_url=getattr(user_obj, "photo_url", None),
             id_proof_type=getattr(user_obj, "id_proof_type", None),
             id_proof_number=getattr(user_obj, "id_proof_number", None),
