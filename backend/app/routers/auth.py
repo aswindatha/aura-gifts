@@ -260,8 +260,21 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     )
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
-    return UserResponse.from_orm_model(current_user)
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    user_resp = UserResponse.from_orm_model(current_user)
+    if current_user.role in [1, 3]:
+        from app.models import UPIDetails
+        stmt = select(UPIDetails).order_by(UPIDetails.id.asc()).limit(1)
+        res = await db.execute(stmt)
+        upi = res.scalars().first()
+        if upi:
+            user_resp.upi_id = upi.upi_id
+            user_resp.upi_qr_url = upi.qr_url
+    return user_resp
+
 
 @router.put("/profile", response_model=UserResponse)
 async def update_profile(

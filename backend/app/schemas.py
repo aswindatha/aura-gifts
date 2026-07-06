@@ -30,6 +30,8 @@ class UserResponse(BaseModel):
     id_proof_type: Optional[str] = None
     id_proof_number: Optional[str] = None
     created_at: datetime
+    upi_id: Optional[str] = None
+    upi_qr_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -50,7 +52,9 @@ class UserResponse(BaseModel):
             photo_url=getattr(user_obj, "photo_url", None),
             id_proof_type=getattr(user_obj, "id_proof_type", None),
             id_proof_number=getattr(user_obj, "id_proof_number", None),
-            created_at=user_obj.created_at
+            created_at=user_obj.created_at,
+            upi_id=getattr(user_obj, "upi_id", None),
+            upi_qr_url=getattr(user_obj, "upi_qr_url", None)
         )
 
 class AdminUserUpdate(BaseModel):
