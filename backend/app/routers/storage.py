@@ -60,9 +60,12 @@ def validate_upload(category: str, content_type: str, size: Optional[int] = None
         )
 
 # Check if using local dev mock mode
+# Always use R2 when credentials are configured, regardless of PRODUCTION flag
 def check_is_mock() -> bool:
     return (
         not settings.R2_ACCESS_KEY_ID or 
+        not settings.R2_SECRET_ACCESS_KEY or
+        not settings.R2_ACCOUNT_ID or
         settings.R2_ACCESS_KEY_ID == "your_r2_access_key_id" or
         "your_r2" in settings.R2_ACCESS_KEY_ID
     )
