@@ -814,7 +814,7 @@ async def seed_database(db):
             }
         ]
         await db.execute(
-            text("INSERT INTO ecommerce.site_config (key, value) VALUES ('banners', :v::jsonb)"),
+            text("INSERT INTO ecommerce.site_config (key, value) VALUES ('banners', CAST(:v AS JSONB))"),
             {"v": json.dumps(default_banners)}
         )
         await db.commit()

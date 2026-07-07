@@ -399,7 +399,7 @@ async def create_user_by_admin(
         
     # Reverse subscription tier
     rev_sub_map = {"none": 0, "student": 1, "silver": 2, "gold": 3, "premium": 4}
-    tier_val = rev_sub_map.get(payload.subscriptionTier.lower(), 0)
+    tier_val = rev_sub_map.get((payload.subscriptionTier or "none").lower(), 0)
     tier_durations = {0: 0, 1: 30, 2: 30, 3: 90, 4: 365}
     sub_expires = (
         datetime.now(timezone.utc) + timedelta(days=tier_durations[tier_val])
@@ -428,6 +428,22 @@ async def create_user_by_admin(
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
+    
+    # Trigger webhook to NAS
+    from app.webhook_client import send_webhook
+    import asyncio
+    asyncio.create_task(
+        send_webhook(
+            "/users/sync",
+            {
+                "id": str(new_user.id),
+                "name": new_user.name,
+                "email": new_user.email,
+                "role": new_user.role,
+                "password_hash": new_user.password_hash
+            }
+        )
+    )
     
     return UserResponse.from_orm_model(new_user)
 
@@ -485,5 +501,21 @@ async def update_user_by_admin(
     db.add(target_user)
     await db.commit()
     await db.refresh(target_user)
+    
+    # Trigger webhook to NAS
+    from app.webhook_client import send_webhook
+    import asyncio
+    asyncio.create_task(
+        send_webhook(
+            "/users/sync",
+            {
+                "id": str(target_user.id),
+                "name": target_user.name,
+                "email": target_user.email,
+                "role": target_user.role,
+                "password_hash": target_user.password_hash
+            }
+        )
+    )
     
     return UserResponse.from_orm_model(target_user)

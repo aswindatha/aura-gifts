@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -114,6 +114,84 @@ async def list_orders(
     orders = result.scalars().all()
     
     return [OrderResponse.from_orm_model(o) for o in orders]
+
+import hmac
+import hashlib
+
+WEBHOOK_SECRET = "your_webhook_secret_key"
+
+async def verify_webhook_signature(request: Request):
+    """Verifies HMAC signature from local NAS backend"""
+    signature = request.headers.get("X-Webhook-Signature")
+    if not signature:
+        print("Webhook Error: Missing X-Webhook-Signature header")
+        raise HTTPException(status_code=401, detail="Missing signature")
+    
+    body = await request.body()
+    expected_signature = hmac.new(
+        WEBHOOK_SECRET.encode(),
+        body,
+        hashlib.sha256
+    ).hexdigest()
+
+    print(f"DEBUG Webhook: Received signature={signature}")
+    print(f"DEBUG Webhook: Received body={body}")
+    print(f"DEBUG Webhook: Expected signature={expected_signature}")
+
+    if not hmac.compare_digest(signature, expected_signature):
+        print("Webhook Error: Signature mismatch")
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+from app.webhook_schemas import WebhookOrderStatusUpdate
+@router.post("/webhook/status", response_model=dict)
+async def update_order_status_from_nas(
+    payload: WebhookOrderStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_webhook_signature)
+):
+    """
+    Receive order/pipeline status updates from the local NAS workflow backend.
+    """
+    # Basic logic to just update the overall order status if a step changes.
+    # In a real system, you might want to sync the entire pipeline back or just specific fields.
+    query = select(Order).where(Order.id == payload.order_id)
+    result = await db.execute(query)
+    order = result.scalars().first()
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+        
+    # If a pipeline step is completed, maybe update the whole order if all are completed,
+    # or just update the pipeline JSON. For this demo, let's just log it.
+    print(f"Received NAS webhook for Order {payload.order_id}: step {payload.step_id} is now {payload.status}")
+
+    # Update pipeline steps inside JSONB if the step is not "final"
+    if order.pipeline_steps and payload.step_id != "final":
+        try:
+            target_step_id = int(payload.step_id)
+            updated_steps = []
+            for step in order.pipeline_steps:
+                if step.get("id") == target_step_id:
+                    updated_step = {**step, "status": payload.status}
+                    if payload.proof_url:
+                        updated_step["proof_url"] = payload.proof_url
+                    updated_steps.append(updated_step)
+                else:
+                    updated_steps.append(step)
+            order.pipeline_steps = updated_steps
+        except (ValueError, TypeError) as e:
+            print(f"Error parsing step_id in webhook: {e}")
+    
+    # Example logic: if any step is completed, we could move order to processing
+    if payload.status == 'Completed' and order.status < 3:
+        order.status = 2 # Processing
+    elif payload.status == 'Shipped':
+        order.status = 3 # Shipped
+        
+    db.add(order)
+    await db.commit()
+
+    return {"status": "ok"}
 
 @router.post("/{order_id}/status", response_model=OrderResponse)
 async def update_order_status(
@@ -275,4 +353,26 @@ async def update_order_pipeline(
     await db.commit()
     await db.refresh(order)
     
+    # Trigger webhook to NAS
+    from app.webhook_client import send_webhook
+    import asyncio
+    asyncio.create_task(
+        send_webhook(
+            "/tasks/sync",
+            {
+                "id": str(order.id),
+                "order_details": {
+                    "full_name": order.full_name,
+                    "city": order.city,
+                    "total_amount": float(order.total_amount),
+                    "delivery_type": order.delivery_type
+                },
+                "steps": payload.steps
+            }
+        )
+    )
+    
     return OrderResponse.from_orm_model(order)
+
+
+

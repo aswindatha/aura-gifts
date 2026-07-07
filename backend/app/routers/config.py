@@ -54,7 +54,7 @@ async def set_config(
     await db.execute(
         text("""
             INSERT INTO ecommerce.site_config (key, value, updated_by, updated_at)
-            VALUES (:k, :v::jsonb, :uid, NOW())
+            VALUES (:k, CAST(:v AS JSONB), :uid, NOW())
             ON CONFLICT (key) DO UPDATE
               SET value = EXCLUDED.value,
                   updated_by = EXCLUDED.updated_by,

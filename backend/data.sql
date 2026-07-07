@@ -17,6 +17,7 @@ INSERT INTO ecommerce.users (id, name, email, phone, password_hash, role, points
 VALUES
     ('c0000000-0000-0000-0000-000000000001', 'Site Admin', 'admin@auraprints.com', NULL,            '$2b$12$Lql1vCWG8bJ2UUgIzrZH6u.K1adpKUbWkW43EjJxTfpIofAA4VTSq', 1, 0, 0, 'Admin HQ, Creative City', NULL, NULL, NULL, TRUE),
     ('c0000000-0000-0000-0000-000000000002', 'Dave Operator', 'dave@auraprints.com', NULL,          '$2b$12$ix0FsyNJFMDR.PFvBrtU9OfH2QblZO3Ib5epSdYFQO/1IOvH6srrS', 2, 0, 0, 'Staff Room, Shop Floor', NULL, NULL, NULL, TRUE),
+    ('c0000000-0000-0000-0000-000000000006', 'Deva', 'deva@auraprints.com', NULL,          '$2b$12$examplehashplaceholder', 2, 0, 0, 'Employee Desk, Shop Floor', NULL, NULL, NULL, TRUE),
     ('c0000000-0000-0000-0000-000000000003', 'Pushpavel', 'pushpa@auraprints.com', NULL,             '$2b$12$gD84lRPpU1MR1oU5CbV3o.1/X9S0doRgMiXCd0ptSF2Oly06C7qci', 3, 0, 0, 'Billing Desk, Shop Floor', NULL, NULL, NULL, TRUE),
     ('c0000000-0000-0000-0000-000000000004', 'Jane Doe', 'customer@auraprints.com', '9876543210',    '$2b$12$uxUUjBVqtXXH8UJTmPD7ouKPLX.u5maUASfzMvhqpSZ7JZ5t2p8Mm', 4, 450, 2, '123 Artisan Way, Apt 4B, Mumbai, MH - 400001', NULL, NULL, NULL, TRUE),
     ('c0000000-0000-0000-0000-000000000005', 'Alex Patel', 'student@auraprints.com', '9876543211',    '$2b$12$QV1q7efTpKOXcdVFb/dqH.GtSDxsZIIvZqYbPOOYncaINJmPEhFOq', 4, 150, 1, '456 Academy Road, Pune, MH - 411001', NULL, NULL, NULL, TRUE);
