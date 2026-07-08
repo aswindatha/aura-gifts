@@ -772,6 +772,10 @@ async def seed_database(db):
         await db.commit()
         print("[Seed] Products seed data successfully populated.")
 
+    # Always align the products sequence with the current maximum ID in the database
+    await db.execute(text("SELECT setval('ecommerce.products_id_seq', COALESCE((SELECT MAX(id) FROM ecommerce.products), 1))"))
+    await db.commit()
+
 @app.on_event("startup")
 async def on_startup():
     from app.config import settings as _settings

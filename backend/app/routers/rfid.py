@@ -105,7 +105,7 @@ async def lookup_rfid_by_uid(
         "card": {
             "id": str(card.id),
             "rfid_uid": card.rfid_uid,
-            "assigned_at": card.assigned_at.isoformat(),
+            "assigned_at": card.assigned_at.isoformat() if card.assigned_at else None,
         },
     }
 
@@ -165,7 +165,7 @@ async def assign_rfid(
                 "id": str(existing_user_card.id),
                 "user_id": str(existing_user_card.user_id),
                 "rfid_uid": existing_user_card.rfid_uid,
-                "assigned_at": existing_user_card.assigned_at.isoformat(),
+                "assigned_at": existing_user_card.assigned_at.isoformat() if existing_user_card.assigned_at else None,
             }
             
         if not replace:
@@ -200,7 +200,7 @@ async def assign_rfid(
         "id": str(rfid.id),
         "user_id": str(rfid.user_id),
         "rfid_uid": rfid.rfid_uid,
-        "assigned_at": rfid.assigned_at.isoformat(),
+        "assigned_at": rfid.assigned_at.isoformat() if rfid.assigned_at else None,
     }
 
 
@@ -230,7 +230,7 @@ async def get_rfid(
         "id": str(card.id),
         "user_id": str(card.user_id),
         "rfid_uid": card.rfid_uid,
-        "assigned_at": card.assigned_at.isoformat(),
+        "assigned_at": card.assigned_at.isoformat() if card.assigned_at else None,
         "assigned_by": str(card.assigned_by) if card.assigned_by else None,
     }
 
