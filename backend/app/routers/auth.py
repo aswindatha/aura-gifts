@@ -260,8 +260,21 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     )
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
-    return UserResponse.from_orm_model(current_user)
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    user_resp = UserResponse.from_orm_model(current_user)
+    if current_user.role in [1, 3]:
+        from app.models import UPIDetails
+        stmt = select(UPIDetails).order_by(UPIDetails.id.asc()).limit(1)
+        res = await db.execute(stmt)
+        upi = res.scalars().first()
+        if upi:
+            user_resp.upi_id = upi.upi_id
+            user_resp.upi_qr_url = upi.qr_url
+    return user_resp
+
 
 @router.put("/profile", response_model=UserResponse)
 async def update_profile(
@@ -331,6 +344,7 @@ async def list_users(
         User.role,
         User.points,
         User.subscription_tier,
+        User.subscription_expires_at,
         User.photo_url,
         User.id_proof_type,
         User.id_proof_number,
@@ -362,6 +376,8 @@ async def list_users(
                 role=ROLE_MAP.get(row.role, "user"),
                 points=row.points,
                 subscriptionTier=SUB_MAP.get(row.subscription_tier, "None"),
+                subscriptionTierCode=row.subscription_tier,
+                subscriptionExpiresAt=row.subscription_expires_at,
                 photo_url=row.photo_url,
                 id_proof_type=row.id_proof_type,
                 id_proof_number=row.id_proof_number,
@@ -519,3 +535,38 @@ async def update_user_by_admin(
     )
     
     return UserResponse.from_orm_model(target_user)
+
+
+@router.delete("/users/{user_id}", response_model=StandardResponse)
+async def delete_user_by_admin(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Cancel a subscriber's plan and optionally soft-delete (Admin/Shopkeeper).
+    Cancels the subscription tier and clears expiry. Does NOT delete the row
+    so order history is preserved.
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+
+    user_q = select(User).where(User.id == user_id)
+    user_res = await db.execute(user_q)
+    target_user = user_res.scalars().first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Cancel subscription (soft operation — row preserved for order history)
+    target_user.subscription_tier = 0
+    target_user.subscription_expires_at = None
+    db.add(target_user)
+    await db.commit()
+
+    return StandardResponse(success=True, message="Subscription cancelled successfully")

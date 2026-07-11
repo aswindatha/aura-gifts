@@ -7,9 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 import razorpay
+from pydantic import BaseModel
 
 from app.database import get_db
-from app.models import Order, OrderItem, User, Cart, CartItem, Payment, WebhookEvent, Refund
+from app.models import Order, OrderItem, User, Cart, CartItem, Payment, WebhookEvent, Refund, UPIDetails
 from app.schemas import (
     CheckoutRequest,
     CheckoutResponse,
@@ -456,3 +457,294 @@ async def refund_payment(
         refund_id=refund_id,
         status=refund_status
     )
+
+
+class UPIUpdateRequest(BaseModel):
+    upi_id: str
+    account_holder_name: str = "AURA PRINTS"
+
+@router.get("/api/payment/upi")
+async def get_upi_details(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Fetch the configured UPI ID and QR code URL (Admin/Shopkeeper only).
+    """
+    if current_user.role not in [1, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied."
+        )
+
+    stmt = select(UPIDetails).order_by(UPIDetails.id.asc()).limit(1)
+    res = await db.execute(stmt)
+    upi = res.scalars().first()
+    if not upi:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="UPI details not configured."
+        )
+    return {
+        "upi_id": upi.upi_id,
+        "account_holder_name": getattr(upi, "account_holder_name", "AURA PRINTS"),
+        "upi_url": upi.upi_url,
+        "qr_url": upi.qr_url,
+        "updated_at": upi.updated_at
+    }
+
+@router.put("/api/payment/upi")
+async def update_upi_details(
+    payload: UPIUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update the system UPI ID, generate the corresponding QR code for Rs.1,
+    upload it to R2 (or local mock folder), and save it in the database.
+    (Admin only).
+    """
+    if current_user.role != 1:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only system administrators can modify UPI settings."
+        )
+
+    new_upi_id = payload.upi_id.strip()
+    new_holder_name = (payload.account_holder_name or "AURA PRINTS").strip()
+    if not new_upi_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="UPI ID cannot be empty."
+        )
+    if not new_holder_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account holder name cannot be empty."
+        )
+
+    # 1. Construct the UPI URL for Rs.1 (admin test payment)
+    import urllib.parse as _urlparse
+    pn_encoded = _urlparse.quote(new_holder_name, safe='')
+    upi_url = f"upi://pay?pa={new_upi_id}&pn={pn_encoded}&am=1.00&cu=INR&tn=test_payment_from_admin"
+
+    # 2. Generate QR code bytes from external API
+    import urllib.parse
+    import requests
+    encoded_upi_url = urllib.parse.quote(upi_url, safe='')
+    qr_api_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encoded_upi_url}"
+
+    try:
+        response = requests.get(qr_api_url)
+        if response.status_code != 200:
+            raise Exception("External QR generation service failed.")
+        qr_image_bytes = response.content
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate QR code: {str(e)}"
+        )
+
+    # 3. Determine if using local dev mock mode
+    is_mock = (
+        not settings.R2_ACCESS_KEY_ID or 
+        not settings.R2_SECRET_ACCESS_KEY or
+        not settings.R2_ACCOUNT_ID or
+        settings.R2_ACCESS_KEY_ID == "your_r2_access_key_id" or
+        "your_r2" in settings.R2_ACCESS_KEY_ID
+    )
+
+    import os
+    public_url = ""
+    if is_mock:
+        # Save locally
+        local_key = "banners/upi_qr.png"
+        local_path = os.path.join("uploads", local_key)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        try:
+            with open(local_path, "wb") as f:
+                f.write(qr_image_bytes)
+            public_url = f"{settings.BACKEND_URL}/static/uploads/{local_key}"
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to save QR code locally: {str(e)}"
+            )
+    else:
+        # Upload to Cloudflare R2
+        import boto3
+        from botocore.config import Config
+        r2_endpoint = f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+        try:
+            s3_client = boto3.client(
+                "s3",
+                endpoint_url=r2_endpoint,
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                region_name="auto",
+                config=Config(signature_version="s3v4"),
+            )
+            s3_client.put_object(
+                Bucket=settings.R2_BUCKET_NAME,
+                Key="banners/upi_qr.png",
+                Body=qr_image_bytes,
+                ContentType="image/png"
+            )
+            if settings.R2_PUBLIC_CUSTOM_DOMAIN:
+                domain = settings.R2_PUBLIC_CUSTOM_DOMAIN.rstrip("/")
+                public_url = f"{domain}/banners/upi_qr.png"
+            else:
+                public_url = f"{r2_endpoint}/{settings.R2_BUCKET_NAME}/banners/upi_qr.png"
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to upload QR code to R2: {str(e)}"
+            )
+
+    # 4. Update the DB table
+    stmt = select(UPIDetails).order_by(UPIDetails.id.asc()).limit(1)
+    res = await db.execute(stmt)
+    upi = res.scalars().first()
+
+    if upi:
+        upi.upi_id = new_upi_id
+        upi.account_holder_name = new_holder_name
+        upi.upi_url = upi_url
+        upi.qr_url = public_url
+        db.add(upi)
+    else:
+        upi = UPIDetails(
+            upi_id=new_upi_id,
+            account_holder_name=new_holder_name,
+            upi_url=upi_url,
+            qr_url=public_url
+        )
+        db.add(upi)
+
+    await db.commit()
+    await db.refresh(upi)
+
+    return {
+        "success": True,
+        "upi_id": upi.upi_id,
+        "account_holder_name": upi.account_holder_name,
+        "upi_url": upi.upi_url,
+        "qr_url": upi.qr_url,
+        "updated_at": upi.updated_at
+    }
+
+
+class CheckoutQRRequest(BaseModel):
+    order_id: str
+    amount: float
+
+@router.post("/api/payment/qr")
+async def generate_checkout_qr(
+    payload: CheckoutQRRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Generate a UPI QR code for a specific order.
+    Fetches the admin-configured UPI ID, builds the UPI URL with order_id as
+    message and the order amount, generates a QR via api.qrserver.com, uploads
+    to R2 (or saves locally in dev), and returns the public QR URL.
+    """
+    # 1. Fetch configured UPI ID from DB
+    stmt = select(UPIDetails).order_by(UPIDetails.id.asc()).limit(1)
+    res = await db.execute(stmt)
+    upi = res.scalars().first()
+    if not upi or not upi.upi_id:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="UPI payment is not configured. Please contact the store."
+        )
+
+    upi_id = upi.upi_id.strip()
+    holder_name = getattr(upi, "account_holder_name", "AURA PRINTS").strip() or "AURA PRINTS"
+    amount = round(float(payload.amount), 2)
+    order_id = payload.order_id.strip()
+
+    # 2. Build the UPI URL with order_id as message and real holder name
+    import urllib.parse
+    import requests as req_lib
+    import os
+
+    tn_raw = f"AURA Order {order_id}"
+    upi_url = (
+        f"upi://pay?pa={upi_id}"
+        f"&pn={urllib.parse.quote(holder_name, safe='')}"
+        f"&am={amount:.2f}"
+        f"&cu=INR"
+        f"&tn={urllib.parse.quote(tn_raw, safe='')}"
+    )
+
+    # 3. Generate QR image from external service
+    encoded_upi = urllib.parse.quote(upi_url, safe='')
+    qr_api = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={encoded_upi}"
+    try:
+        r = req_lib.get(qr_api, timeout=10)
+        if r.status_code != 200:
+            raise Exception(f"QR server returned {r.status_code}")
+        qr_bytes = r.content
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate QR code: {str(e)}"
+        )
+
+    # 4. Store the QR (R2 in prod, local disk in dev)
+    safe_id = "".join(c for c in order_id if c.isalnum() or c in "-_")
+    r2_key = f"receipts/qr_{safe_id}.png"
+
+    is_mock = (
+        not settings.R2_ACCESS_KEY_ID
+        or not settings.R2_SECRET_ACCESS_KEY
+        or not settings.R2_ACCOUNT_ID
+        or "your_r2" in settings.R2_ACCESS_KEY_ID
+    )
+
+    public_url = ""
+    if is_mock:
+        local_path = os.path.join("uploads", r2_key)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        with open(local_path, "wb") as f:
+            f.write(qr_bytes)
+        public_url = f"{settings.BACKEND_URL}/static/uploads/{r2_key}"
+    else:
+        import boto3
+        from botocore.config import Config as BotoConfig
+        r2_endpoint = f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+        try:
+            s3 = boto3.client(
+                "s3",
+                endpoint_url=r2_endpoint,
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                region_name="auto",
+                config=BotoConfig(signature_version="s3v4"),
+            )
+            s3.put_object(
+                Bucket=settings.R2_BUCKET_NAME,
+                Key=r2_key,
+                Body=qr_bytes,
+                ContentType="image/png",
+            )
+            if settings.R2_PUBLIC_CUSTOM_DOMAIN:
+                domain = settings.R2_PUBLIC_CUSTOM_DOMAIN.rstrip("/")
+                public_url = f"{domain}/{r2_key}"
+            else:
+                public_url = f"{r2_endpoint}/{settings.R2_BUCKET_NAME}/{r2_key}"
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to store QR in R2: {str(e)}"
+            )
+
+    return {
+        "qr_url": public_url,
+        "upi_url": upi_url,
+        "upi_id": upi_id,
+        "amount": amount,
+        "order_id": order_id,
+    }

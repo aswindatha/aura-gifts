@@ -96,7 +96,17 @@ settings.BACKEND_URL = (
 )
 
 # Storage / R2 — expose a flat set of names the rest of the app uses
-if IS_PRODUCTION:
+# Use R2 credentials if available, regardless of PRODUCTION flag
+if settings.PROD_R2_ACCOUNT_ID and settings.PROD_R2_ACCESS_KEY_ID and settings.PROD_R2_SECRET_ACCESS_KEY:
+    # R2 credentials available - use them
+    settings.R2_ACCOUNT_ID           = settings.PROD_R2_ACCOUNT_ID
+    settings.R2_ACCESS_KEY_ID        = settings.PROD_R2_ACCESS_KEY_ID
+    settings.R2_SECRET_ACCESS_KEY    = settings.PROD_R2_SECRET_ACCESS_KEY
+    settings.R2_BUCKET_NAME          = settings.PROD_R2_BUCKET_NAME or "aura-prints"
+    settings.R2_PUBLIC_CUSTOM_DOMAIN = settings.PROD_R2_PUBLIC_CUSTOM_DOMAIN
+    settings.STORAGE_BASE_URL        = settings.PROD_R2_PUBLIC_CUSTOM_DOMAIN if settings.PROD_R2_PUBLIC_CUSTOM_DOMAIN else settings.DEV_STORAGE_BASE_URL
+elif IS_PRODUCTION:
+    # Production mode but no R2 credentials - use prod settings (will fail if credentials missing)
     settings.R2_ACCOUNT_ID           = settings.PROD_R2_ACCOUNT_ID
     settings.R2_ACCESS_KEY_ID        = settings.PROD_R2_ACCESS_KEY_ID
     settings.R2_SECRET_ACCESS_KEY    = settings.PROD_R2_SECRET_ACCESS_KEY
@@ -104,7 +114,7 @@ if IS_PRODUCTION:
     settings.R2_PUBLIC_CUSTOM_DOMAIN = settings.PROD_R2_PUBLIC_CUSTOM_DOMAIN
     settings.STORAGE_BASE_URL        = settings.PROD_R2_PUBLIC_CUSTOM_DOMAIN
 else:
-    # Dev: R2 fields are empty — storage router uses local /uploads dir instead
+    # Dev mode without R2 credentials - use local /uploads dir
     settings.R2_ACCOUNT_ID           = ""
     settings.R2_ACCESS_KEY_ID        = ""
     settings.R2_SECRET_ACCESS_KEY    = ""

@@ -115,6 +115,7 @@ class Order(Base):
     phone_number = Column(String(50), nullable=False)
     pipeline_steps = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
@@ -125,6 +126,7 @@ class OrderItem(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("ecommerce.products.id", ondelete="SET NULL"), nullable=True, index=True)
     product_name = Column(String(255), nullable=False)
     subtitle = Column(String(255), nullable=True)
     price = Column(Numeric(10, 2), nullable=False)
@@ -133,6 +135,7 @@ class OrderItem(Base):
 
     # Relationships
     order = relationship("Order", back_populates="items")
+    product = relationship("Product")
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
@@ -256,5 +259,18 @@ class Refund(Base):
 
     # Relationships
     payment = relationship("Payment", backref="refunds")
+
+
+class UPIDetails(Base):
+    __tablename__ = "upi_details"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    upi_id = Column(String(255), nullable=False)
+    account_holder_name = Column(String(255), nullable=False, server_default="AURA PRINTS")
+    upi_url = Column(Text, nullable=False)
+    qr_url = Column(Text, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 

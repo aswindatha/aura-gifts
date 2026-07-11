@@ -18,7 +18,7 @@ from app.schemas import StandardResponse
 
 router = APIRouter(prefix="/api/storage", tags=["Storage"])
 
-ALLOWED_CATEGORIES = {"products", "tasks", "print-orders", "book-prints", "receipts"}
+ALLOWED_CATEGORIES = {"products", "tasks", "print-orders", "book-prints", "receipts", "users", "banners"}
 
 # Validation Rules
 SIZE_LIMITS = {
@@ -27,6 +27,8 @@ SIZE_LIMITS = {
     "products": 100 * 1024 * 1024,     # 100 MB
     "print-orders": 500 * 1024 * 1024, # 500 MB
     "book-prints": 500 * 1024 * 1024,  # 500 MB
+    "users": 10 * 1024 * 1024,         # 10 MB
+    "banners": 20 * 1024 * 1024,       # 20 MB
 }
 
 ALLOWED_MIMES = {
@@ -35,6 +37,8 @@ ALLOWED_MIMES = {
     "products": {"image/png", "image/jpeg", "image/jpg", "image/webp", "video/mp4", "video/webm"},
     "print-orders": {"image/png", "image/jpeg", "image/jpg", "image/webp", "image/tiff", "application/pdf"},
     "book-prints": {"image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"},
+    "users": {"image/png", "image/jpeg", "image/jpg", "image/webp"},
+    "banners": {"image/png", "image/jpeg", "image/jpg", "image/webp"},
 }
 
 def validate_upload(category: str, content_type: str, size: Optional[int] = None):
@@ -56,9 +60,12 @@ def validate_upload(category: str, content_type: str, size: Optional[int] = None
         )
 
 # Check if using local dev mock mode
+# Always use R2 when credentials are configured, regardless of PRODUCTION flag
 def check_is_mock() -> bool:
     return (
         not settings.R2_ACCESS_KEY_ID or 
+        not settings.R2_SECRET_ACCESS_KEY or
+        not settings.R2_ACCOUNT_ID or
         settings.R2_ACCESS_KEY_ID == "your_r2_access_key_id" or
         "your_r2" in settings.R2_ACCESS_KEY_ID
     )
@@ -105,7 +112,7 @@ async def generate_presigned_url(
     if payload.category in ("tasks", "print-orders", "book-prints"):
         delete_after_dt = datetime.utcnow() + timedelta(days=30)
         
-    is_public = (payload.category == "products")
+    is_public = (payload.category in ("products", "users", "banners"))
 
     # Local Developer Mock Fallback Mode
     if check_is_mock():
@@ -413,7 +420,7 @@ async def complete_multipart_upload(
     """
     Completes the multipart upload session and commits file metadata to PostgreSQL.
     """
-    is_public = (payload.category == "products")
+    is_public = (payload.category in ("products", "users", "banners"))
     delete_after_dt = None
     if payload.category in ("tasks", "print-orders", "book-prints"):
         delete_after_dt = datetime.utcnow() + timedelta(days=30)
