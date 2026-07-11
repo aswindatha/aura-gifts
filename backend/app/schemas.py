@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+from app.storage_helpers import sign_r2_url
 
 # Role & Subscription Mapping helper to convert database SMALLINT representation to frontend strings
 ROLE_MAP = {1: "admin", 2: "employee", 3: "shopkeeper", 4: "user"}
@@ -237,7 +238,7 @@ class OrderResponse(BaseModel):
             status=ORDER_STATUS_MAP.get(order_obj.status, "Awaiting Payment Verification"),
             delivery_type=order_obj.delivery_type,
             delivery_cost=float(order_obj.delivery_cost),
-            payment_screenshot_url=order_obj.payment_screenshot_url,
+            payment_screenshot_url=sign_r2_url(order_obj.payment_screenshot_url),
             full_name=order_obj.full_name,
             street_address=order_obj.street_address,
             city=order_obj.city,
@@ -245,7 +246,16 @@ class OrderResponse(BaseModel):
             phone_number=order_obj.phone_number,
             pipeline_steps=order_obj.pipeline_steps or [],
             created_at=order_obj.created_at,
-            items=[OrderItemResponse.model_validate(item) for item in order_obj.items]
+            items=[
+                OrderItemResponse(
+                    id=item.id,
+                    product_name=item.product_name,
+                    subtitle=item.subtitle,
+                    price=float(item.price),
+                    quantity=item.quantity,
+                    uploaded_file_url=sign_r2_url(item.uploaded_file_url)
+                ) for item in order_obj.items
+            ]
         )
 
 

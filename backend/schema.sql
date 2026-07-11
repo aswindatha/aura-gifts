@@ -541,6 +541,33 @@ CREATE TABLE IF NOT EXISTS ecommerce.refunds (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- UPI Details table
+CREATE TABLE IF NOT EXISTS ecommerce.upi_details (
+    id SERIAL PRIMARY KEY,
+    upi_id VARCHAR(255) NOT NULL,
+    account_holder_name VARCHAR(255) NOT NULL DEFAULT 'AURA PRINTS',
+    upi_url TEXT NOT NULL,
+    qr_url TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP TRIGGER IF EXISTS trg_upi_details_updated_at ON ecommerce.upi_details;
+CREATE TRIGGER trg_upi_details_updated_at
+    BEFORE UPDATE ON ecommerce.upi_details
+    FOR EACH ROW EXECUTE FUNCTION ecommerce.update_updated_at_column();
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE ecommerce.upi_details ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY select_upi_details ON ecommerce.upi_details
+    FOR SELECT USING (true);
+
+CREATE POLICY admin_manage_upi_details ON ecommerce.upi_details
+    FOR ALL USING (
+        EXISTS (SELECT 1 FROM ecommerce.users WHERE id = auth.uid() AND role = 1)
+    );
+
 -- -----------------------------------------------------------------------------
 -- 2.12 Media Files Table (ecommerce.media_files)
 -- -----------------------------------------------------------------------------

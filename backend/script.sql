@@ -14,6 +14,91 @@
 
 BEGIN;
 
+-- =============================================================================
+-- Migration: Create and Configure ecommerce.upi_details Table
+-- =============================================================================
+
+-- 0. Create update_updated_at_column function if it doesn't exist
+CREATE OR REPLACE FUNCTION ecommerce.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- 1. Create upi_details table if it doesn't exist
+CREATE TABLE IF NOT EXISTS ecommerce.upi_details (
+    id SERIAL PRIMARY KEY,
+    upi_id VARCHAR(255) NOT NULL,
+    account_holder_name VARCHAR(255) NOT NULL DEFAULT 'AURA PRINTS',
+    upi_url TEXT NOT NULL,
+    qr_url TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Add account_holder_name column if it's missing (e.g. if table was created by older script)
+ALTER TABLE ecommerce.upi_details ADD COLUMN IF NOT EXISTS account_holder_name VARCHAR(255) NOT NULL DEFAULT 'AURA PRINTS';
+
+-- 3. Enable RLS and Create policies dynamically (only if auth schema exists, e.g. on Supabase)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'auth') THEN
+        EXECUTE 'ALTER TABLE ecommerce.upi_details ENABLE ROW LEVEL SECURITY;';
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE schemaname = 'ecommerce' AND tablename = 'upi_details' AND policyname = 'select_upi_details'
+        ) THEN
+            EXECUTE 'CREATE POLICY select_upi_details ON ecommerce.upi_details FOR SELECT USING (true);';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE schemaname = 'ecommerce' AND tablename = 'upi_details' AND policyname = 'admin_manage_upi_details'
+        ) THEN
+            EXECUTE 'CREATE POLICY admin_manage_upi_details ON ecommerce.upi_details FOR ALL USING (
+                EXISTS (SELECT 1 FROM ecommerce.users WHERE id = auth.uid() AND role = 1)
+            );';
+        END IF;
+    END IF;
+END $$;
+
+-- 5. Trigger to auto-update updated_at on modification
+DROP TRIGGER IF EXISTS trg_upi_details_updated_at ON ecommerce.upi_details;
+CREATE TRIGGER trg_upi_details_updated_at
+    BEFORE UPDATE ON ecommerce.upi_details
+    FOR EACH ROW EXECUTE FUNCTION ecommerce.update_updated_at_column();
+
+-- 6. Seed default UPI configuration if table is empty
+INSERT INTO ecommerce.upi_details (upi_id, account_holder_name, upi_url, qr_url)
+SELECT 'aswindathas@ibl', 'AURA PRINTS', 'upi://pay?pa=aswindathas@ibl&pn=AURA_PRINTS&am=1.00&cu=INR&tn=test_payment_from_admin', 'https://pub-3311c02cc7624d7fa550e7962fd81c46.r2.dev/banners/default_qr.png'
+WHERE NOT EXISTS (SELECT 1 FROM ecommerce.upi_details);
+
+-- =============================================================================
+-- Migration: Add missing updated_at and product_id columns
+-- =============================================================================
+
+-- 1. Add updated_at column to orders table if it doesn't exist
+ALTER TABLE ecommerce.orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+
+-- 2. Create updated_at trigger for orders if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_orders_updated_at') THEN
+        CREATE TRIGGER trg_orders_updated_at
+            BEFORE UPDATE ON ecommerce.orders
+            FOR EACH ROW
+            EXECUTE FUNCTION ecommerce.update_updated_at_column();
+    END IF;
+END $$;
+
+-- 3. Add product_id column to order_items table if it doesn't exist
+ALTER TABLE ecommerce.order_items ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES ecommerce.products(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- Seed Subscriber Testing Data
+-- =============================================================================
+
 -- Active Gold subscriber (valid ~90 days from now)
 INSERT INTO ecommerce.users (
     id, name, email, phone, password_hash,
@@ -159,27 +244,27 @@ INSERT INTO ecommerce.users (
 ) ON CONFLICT (email) DO NOTHING;
 -- Link sample RFID cards to seeded subscribers
 INSERT INTO ecommerce.rfid_cards (id, user_id, rfid_uid, is_active, assigned_by)
-SELECT gen_random_uuid(), id, '12AB34CD', TRUE, 'c0000000-0000-0000-0000-000000000003'::uuid
+SELECT gen_random_uuid(), id, '12AB34CD', TRUE, (SELECT id FROM ecommerce.users WHERE id = 'c0000000-0000-0000-0000-000000000003'::uuid)
 FROM ecommerce.users WHERE email = 'ravi.kumar@example.com'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO ecommerce.rfid_cards (id, user_id, rfid_uid, is_active, assigned_by)
-SELECT gen_random_uuid(), id, '56EF78GH', TRUE, 'c0000000-0000-0000-0000-000000000003'::uuid
+SELECT gen_random_uuid(), id, '56EF78GH', TRUE, (SELECT id FROM ecommerce.users WHERE id = 'c0000000-0000-0000-0000-000000000003'::uuid)
 FROM ecommerce.users WHERE email = 'priya.patel@example.com'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO ecommerce.rfid_cards (id, user_id, rfid_uid, is_active, assigned_by)
-SELECT gen_random_uuid(), id, '90IJ12KL', TRUE, 'c0000000-0000-0000-0000-000000000003'::uuid
+SELECT gen_random_uuid(), id, '90IJ12KL', TRUE, (SELECT id FROM ecommerce.users WHERE id = 'c0000000-0000-0000-0000-000000000003'::uuid)
 FROM ecommerce.users WHERE email = 'arjun.mehta@example.com'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO ecommerce.rfid_cards (id, user_id, rfid_uid, is_active, assigned_by)
-SELECT gen_random_uuid(), id, '34MN56OP', TRUE, 'c0000000-0000-0000-0000-000000000003'::uuid
+SELECT gen_random_uuid(), id, '34MN56OP', TRUE, (SELECT id FROM ecommerce.users WHERE id = 'c0000000-0000-0000-0000-000000000003'::uuid)
 FROM ecommerce.users WHERE email = 'sneha.nair@example.com'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO ecommerce.rfid_cards (id, user_id, rfid_uid, is_active, assigned_by)
-SELECT gen_random_uuid(), id, '78QR90ST', TRUE, 'c0000000-0000-0000-0000-000000000003'::uuid
+SELECT gen_random_uuid(), id, '78QR90ST', TRUE, (SELECT id FROM ecommerce.users WHERE id = 'c0000000-0000-0000-0000-000000000003'::uuid)
 FROM ecommerce.users WHERE email = 'amit.verma@example.com'
 ON CONFLICT DO NOTHING;
 
