@@ -259,6 +259,10 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
         user=UserResponse.from_orm_model(user)
     )
 
+@router.post("/employee-login", response_model=TokenResponse)
+async def employee_login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    return await login(payload, db)
+
 @router.get("/me", response_model=UserResponse)
 async def get_me(
     current_user: User = Depends(get_current_user),
