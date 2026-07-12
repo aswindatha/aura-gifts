@@ -6,3 +6,4 @@ async def run():
         res = await conn.execute(text("SELECT email_verified FROM ecommerce.users WHERE email='deva@auraprints.com'"))
         print(res.fetchall())
 asyncio.run(run())
+
