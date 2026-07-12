@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime
 from app.storage_helpers import sign_r2_url
@@ -385,4 +385,35 @@ class RefundRequest(BaseModel):
 class RefundResponse(BaseModel):
     refund_id: str
     status: str
+
+
+# ── Workflow Templates ───────────────────────────────────────────────────────
+
+class WorkflowStep(BaseModel):
+    id: int
+    name: str
+    desc: str = ""
+    assignee: str = "Unassigned"
+    status: str = "Pending"
+
+class WorkflowTemplateCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    steps: List[WorkflowStep]
+
+class WorkflowTemplateUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    steps: Optional[List[WorkflowStep]] = None
+    is_active: Optional[bool] = None
+
+class WorkflowTemplateResponse(BaseModel):
+    id: UUID
+    name: str
+    created_by: UUID
+    steps: List[Dict[str, Any]]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 

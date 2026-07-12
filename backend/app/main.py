@@ -15,7 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.database import engine, SessionLocal
 from app.models import Base, User, Product, RFIDCard
 
-from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config
+from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config, workflows
 
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
@@ -141,6 +141,9 @@ CORS_ORIGINS = (
     [
         "https://auraprintsandgifts.in",
         "https://www.auraprintsandgifts.in",
+        "http://localhost:5173",          # local Vite dev
+        "capacitor://localhost",         # iOS mobile app
+        "http://localhost",                # Android mobile app
     ]
     if os.getenv("PRODUCTION", "0") == "1"
     else ["*"]
@@ -164,6 +167,7 @@ app.include_router(rfid.router)    # Register rfid router
 app.include_router(cart.router)     # Register cart router
 app.include_router(payments.router)   # Register payments router
 app.include_router(config.router)     # Register site config router
+app.include_router(workflows.router)  # Register workflow templates router
 
 # Create uploads directory if not exists
 os.makedirs("uploads", exist_ok=True)

@@ -275,4 +275,17 @@ class UPIDetails(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class WorkflowTemplate(Base):
+    __tablename__ = "workflow_templates"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("ecommerce.users.id", ondelete="CASCADE"), nullable=False, index=True)
+    steps = Column(JSON, nullable=False, default=list)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    creator = relationship("User", backref="workflow_templates")
 
