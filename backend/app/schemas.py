@@ -79,6 +79,14 @@ class AdminUserCreate(BaseModel):
     id_proof_type: Optional[str] = None
     id_proof_number: Optional[str] = None
 
+class AdminEmployeeCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    job_title: Optional[str] = "Employee"   # typable role/designation
+    password: Optional[str] = "Welcome123"  # custom password, defaults to Welcome123
+
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -117,6 +125,8 @@ class ProductCreate(BaseModel):
     category: Optional[str] = None
     badge: Optional[str] = None
     image_url: Optional[str] = None
+    out_of_stock: Optional[bool] = False
+    available_count: Optional[int] = 0
     mrp: Optional[float] = None
     rating: Optional[float] = 4.5
     images: list[str] = []
@@ -133,6 +143,7 @@ class ProductUpdate(BaseModel):
     badge: Optional[str] = None
     image_url: Optional[str] = None
     out_of_stock: Optional[bool] = None
+    available_count: Optional[int] = None
     mrp: Optional[float] = None
     rating: Optional[float] = None
     images: Optional[list[str]] = None
@@ -150,6 +161,7 @@ class ProductResponse(BaseModel):
     badge: Optional[str] = None
     image_url: Optional[str] = None
     out_of_stock: bool
+    available_count: int = 0
     mrp: Optional[float] = None
     rating: Optional[float] = None
     review_count: int = 0
@@ -174,6 +186,7 @@ class OrderItemCreate(BaseModel):
 
 class OrderItemResponse(BaseModel):
     id: UUID
+    product_id: Optional[int] = None
     product_name: str
     subtitle: Optional[str] = None
     price: float

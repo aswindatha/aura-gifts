@@ -93,11 +93,14 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
         if "/api/products" in path and method == "GET":
             # Collect body chunks
             body_bytes = b""
-            async for chunk in response.body_iterator:
-                body_bytes += chunk
+            if hasattr(response, "body_iterator"):
+                async for chunk in response.body_iterator:
+                    body_bytes += chunk
+            elif hasattr(response, "body"):
+                body_bytes = response.body
 
             try:
-                data = json.loads(body_bytes.decode("utf-8"))
+                data = json.loads(bytes(body_bytes).decode("utf-8"))
                 if isinstance(data, list):
                     body_summary = f"  -> {len(data)} product(s) returned"
                     if data:
@@ -165,6 +168,7 @@ app.include_router(config.router)     # Register site config router
 # Create uploads directory if not exists
 os.makedirs("uploads", exist_ok=True)
 app.mount("/static/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads_direct")
 
 
 
@@ -226,9 +230,9 @@ async def seed_database(db):
                 address="Hostel 4, IIT Bombay, Powai, Mumbai - 400076"
             ),
             User(
-                name="Dave Operator",
-                email="dave@auraprints.com",
-                password_hash=get_password_hash("dave123"),
+                name="Deva",
+                email="deva@auraprints.com",
+                password_hash=get_password_hash("deva123"),
                 email_verified=True,
                 role=2,
                 points=0,
@@ -280,6 +284,7 @@ async def seed_database(db):
                 image_url="https://lh3.googleusercontent.com/aida-public/AB6AXuBehfvhJuTMiXtWFQe2pWlkrsR8gXJXSo2dx0miac6CbTrsrNlBsUYj267ST_bYnG1SFOFQ1nL_59kxAVZ2bCO70omCeToLv3qhbzb9jlbO0opg7OW1FQATnlVYo6sjKOkbCaoV9mMBnuqC9-3ZFAsU2Fuu-YuKBs1V3IY-mkNJe0bEEYSdN9I62AeKgciKnxvKeHPMoDIFPqLECldyLjp9XziksDk3CxsbGDV8r8EMtdyMyKnV-ziRB4SNi0vHJiNFFGWcHOjJqCs",
                 description="Handcrafted genuine teakwood with rich natural grain patterns. A warm, timeless classic designed to elevate your photographic prints, sketches, and professional documents.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=1800.00,
                 rating=4.80,
                 review_count=124,
@@ -317,6 +322,7 @@ async def seed_database(db):
                 image_url="/charcoal_walnut_frame.png",
                 description="Deep charcoal-stained premium walnut wood. Offers an elegant, modern dark accent that fits high-contrast photography, sketch designs, and monochrome art prints.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=2200.00,
                 rating=4.90,
                 review_count=86,
@@ -352,6 +358,7 @@ async def seed_database(db):
                 image_url="/classic_oak_frame.png",
                 description="Solid light oak frame with raw matte wax coating. Ideal for minimalist interior designs, landscape photography, watercolors, and charcoal sketches.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=1950.00,
                 rating=4.70,
                 review_count=94,
@@ -387,6 +394,7 @@ async def seed_database(db):
                 image_url="/modern_gold_frame.png",
                 description="Luxury anodized golden aluminum frame. Brushed finish perfect for executive offices, certificates, achievement degrees, and modern fine art statement pieces.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=3200.00,
                 rating=4.80,
                 review_count=73,
@@ -422,6 +430,7 @@ async def seed_database(db):
                 image_url="/minimalist_white_frame.png",
                 description="Matte white wooden frame with smooth wrap finish. Beautifully highlights drawings, high-contrast sketching, watercolor paintings, and modern artwork.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=1600.00,
                 rating=4.60,
                 review_count=42,
@@ -457,6 +466,7 @@ async def seed_database(db):
                 image_url="/gallery_black_frame.png",
                 description="Professional matte black wooden finish, perfect for high-contrast statements, gallery exhibitions, and modern black-and-white portraits.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=1750.00,
                 rating=4.80,
                 review_count=110,
@@ -492,6 +502,7 @@ async def seed_database(db):
                 image_url="/fine_art_print.png",
                 description="Premium grade photo prints on heavy 260gsm lustre-finish photographic paper. Delivering vibrant colors, deep blacks, and a gorgeous semi-matte finish that resists fingerprints and reflections.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=500.00,
                 rating=4.90,
                 review_count=148,
@@ -528,6 +539,7 @@ async def seed_database(db):
                 image_url="/collage_frame.png",
                 description="A premium large-profile gallery collage frame designed to group nine square family portraits in a beautiful 3x3 layout. Supplied with archival-grade precision bevel-cut matting.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=3900.00,
                 rating=4.80,
                 review_count=92,
@@ -563,6 +575,7 @@ async def seed_database(db):
                 image_url="/floating_canvas.png",
                 description="Modern gold metallic float-mount frame designed to give your canvas prints a beautiful border shadowbox look, suspended 0.25 inches off the frame edges.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=3000.00,
                 rating=4.70,
                 review_count=46,
@@ -598,6 +611,7 @@ async def seed_database(db):
                 image_url="https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg",
                 description="Smooth flow premium rollerball pen with weighted brass body and luxury indigo finish.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=4200.00,
                 rating=4.90,
                 review_count=92,
@@ -664,6 +678,7 @@ async def seed_database(db):
                 image_url="https://lh3.googleusercontent.com/aida-public/AB6AXuAldfb-X5l64uc9iwFf5wEuOofZsHwlLQXar37AnwoNcYDufiBkYYSHa8MyQheWhiCnr5Ql2z2y-mVSWPp-Wuav4JbSi2foa8NZ45wRF0j1EUN0llWudxN1w-ADMgMv4v5PkZX7aw2rxCMppK5SpVbNRqNjGE0rCr89050F4xL-2X9_d4f2Gt2pQUcavHoisSr6-iVyGv1kq3F_9RS6PAfKve5wYcB2JxcXaLrE2V7YD4zwKJmWA_H93wIUn-t_jkyymM3i_5YxLPg",
                 description="Hand-tailored rich brown leather cover with a vintage brass key wrap lock. Ideal for daily logging, sketches, and professional notes.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=2500.00,
                 rating=4.90,
                 review_count=142,
@@ -697,6 +712,7 @@ async def seed_database(db):
                 image_url="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg",
                 description="Heavy weighted retro circular desk clock forged in brushed solid brass. Features quiet sweep mechanism and pristine glass pane.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=3800.00,
                 rating=4.80,
                 review_count=88,
@@ -729,6 +745,7 @@ async def seed_database(db):
                 image_url="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg",
                 description="Multi-functional desktop storage slot handcrafted from premium walnut hardwood. Features dedicated smartphone dock, pen slots, and accessory tray.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=2100.00,
                 rating=4.70,
                 review_count=76,
@@ -761,6 +778,7 @@ async def seed_database(db):
                 image_url="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg",
                 description="Complete ceremonial letter sealing set containing an ornate carved brass stamp, wax beads, melting spoon, and candles in a leatherette gift box.",
                 out_of_stock=False,
+                available_count=25,
                 mrp=1950.00,
                 rating=4.90,
                 review_count=54,
@@ -854,6 +872,10 @@ async def on_startup():
                 await conn.run_sync(Base.metadata.create_all)
                 # Ensure the pipeline_steps column exists on the orders table
                 await conn.execute(text("ALTER TABLE ecommerce.orders ADD COLUMN IF NOT EXISTS pipeline_steps JSONB;"))
+                # Ensure the available_count column exists on the products table
+                await conn.execute(text("ALTER TABLE ecommerce.products ADD COLUMN IF NOT EXISTS available_count INTEGER NOT NULL DEFAULT 0;"))
+                # Ensure the stock_deducted column exists on the orders table
+                await conn.execute(text("ALTER TABLE ecommerce.orders ADD COLUMN IF NOT EXISTS stock_deducted BOOLEAN DEFAULT FALSE;"))
                 # Create site_config if not exists (raw SQL table since no SQLAlchemy model is mapped)
                 await conn.execute(text("""
                     CREATE TABLE IF NOT EXISTS ecommerce.site_config (

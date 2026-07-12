@@ -78,6 +78,8 @@ async def create_order(
         cart_obj = cart_res.scalars().first()
         if cart_obj:
             clear_q = delete(CartItem).where(CartItem.cart_id == cart_obj.id)
+
+
             await db.execute(clear_q)
     except Exception as e:
         print(f"[Checkout Error] Failed to clear database cart: {e}", flush=True)
@@ -95,6 +97,7 @@ async def create_order(
 async def list_orders(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    tasks_only: bool = Query(False),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -108,11 +111,25 @@ async def list_orders(
     if current_user.role == 4:
         query = query.where(Order.user_id == current_user.id)
         
+    if tasks_only:
+        # Task Orchestration/Operator tasks: Paid & Processing (2)
+        query = query.where(Order.status == 2)
+
     query = query.order_by(Order.created_at.desc()).limit(limit).offset(offset)
     
     result = await db.execute(query)
     orders = result.scalars().all()
     
+    if tasks_only:
+        filtered_orders = []
+        for o in orders:
+            if o.pipeline_steps and len(o.pipeline_steps) > 0:
+                all_completed = all(step.get("status") == "Completed" for step in o.pipeline_steps)
+                if all_completed:
+                    continue
+            filtered_orders.append(o)
+        orders = filtered_orders
+        
     return [OrderResponse.from_orm_model(o) for o in orders]
 
 import hmac
@@ -181,12 +198,20 @@ async def update_order_status_from_nas(
             order.pipeline_steps = updated_steps
         except (ValueError, TypeError) as e:
             print(f"Error parsing step_id in webhook: {e}")
-    
-    # Example logic: if any step is completed, we could move order to processing
-    if payload.status == 'Completed' and order.status < 3:
-        order.status = 2 # Processing
-    elif payload.status == 'Shipped':
-        order.status = 3 # Shipped
+    # Check if every step is completed
+    all_completed = False
+    if order.pipeline_steps and len(order.pipeline_steps) > 0:
+        all_completed = all(step.get("status") == "Completed" for step in order.pipeline_steps)
+        
+    if all_completed:
+        order.status = 3  # Shipped
+        print(f"Order {order.id} has all pipeline steps completed. Setting status to Shipped.")
+    else:
+        # Example logic: if any step is completed, we could move order to processing
+        if payload.status == 'Completed' and order.status < 3:
+            order.status = 2 # Processing
+        elif payload.status == 'Shipped':
+            order.status = 3 # Shipped
         
     db.add(order)
     await db.commit()
@@ -240,6 +265,10 @@ async def update_order_status(
     order.status = new_status_code
     if new_status_code == 4: # 4 = Delivered (from ORDER_STATUS_MAP)
         await db.execute(delete(ChatMessage).where(ChatMessage.order_id == order.id))
+    elif new_status_code == 5: # 5 = Cancelled
+        from app.routers.payments import restore_stock_for_order
+        await restore_stock_for_order(db, order)
+
     db.add(order)
     await db.commit()
     await db.refresh(order)
@@ -312,6 +341,11 @@ async def cancel_order(
     # Update status to 5 (Cancelled)
     order.status = 5
     db.add(order)
+
+    # Restore stock if it was already deducted
+    from app.routers.payments import restore_stock_for_order
+    await restore_stock_for_order(db, order)
+
     await db.commit()
     await db.refresh(order)
     
@@ -349,6 +383,14 @@ async def update_order_pipeline(
         )
         
     order.pipeline_steps = payload.steps
+    
+    # Check if every step is completed
+    if payload.steps and len(payload.steps) > 0:
+        all_completed = all(step.get("status") == "Completed" for step in payload.steps)
+        if all_completed:
+            order.status = 3  # Shipped
+            print(f"Order {order.id} updated by shopkeeper, all steps completed. Setting status to Shipped.")
+            
     db.add(order)
     await db.commit()
     await db.refresh(order)
@@ -373,6 +415,3 @@ async def update_order_pipeline(
     )
     
     return OrderResponse.from_orm_model(order)
-
-
-

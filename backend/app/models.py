@@ -83,6 +83,7 @@ class Product(Base):
     badge = Column(String(50), nullable=True)
     image_url = Column(Text, nullable=True)
     out_of_stock = Column(Boolean, default=False)
+    available_count = Column(Integer, nullable=False, default=0)
     mrp = Column(Numeric(10, 2), nullable=True)
     rating = Column(Numeric(3, 2), nullable=True)
     review_count = Column(Integer, default=0)
@@ -114,6 +115,7 @@ class Order(Base):
     pin_code = Column(String(20), nullable=False)
     phone_number = Column(String(50), nullable=False)
     pipeline_steps = Column(JSON, nullable=True)
+    stock_deducted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 

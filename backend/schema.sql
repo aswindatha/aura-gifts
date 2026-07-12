@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS ecommerce.products (
     badge VARCHAR(50),                                 -- e.g., 'New', 'Sale'
     image_url TEXT,                                   -- Main image URL
     out_of_stock BOOLEAN DEFAULT FALSE,
+    available_count INTEGER NOT NULL DEFAULT 0,       -- Current available inventory units
     mrp NUMERIC(10, 2),                               -- Maximum Retail Price (for discount display)
     rating NUMERIC(3, 2),                             -- Average rating (0‑5)
     review_count INTEGER DEFAULT 0,
@@ -188,6 +189,7 @@ CREATE TABLE IF NOT EXISTS ecommerce.orders (
     city VARCHAR(100) NOT NULL,
     pin_code VARCHAR(20) NOT NULL,
     phone_number VARCHAR(50) NOT NULL,
+    stock_deducted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -606,4 +608,4 @@ CREATE TABLE IF NOT EXISTS ecommerce.rfid_scan_logs (
 
 CREATE INDEX IF NOT EXISTS idx_rfid_scan_logs_uid ON ecommerce.rfid_scan_logs(rfid_uid);
 CREATE INDEX IF NOT EXISTS idx_rfid_scan_logs_user_id ON ecommerce.rfid_scan_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_rfid_scan_logs_time ON ecommerce.rfid_scan_logs(scan_time);
+CREATE INDEX IF NOT EXISTS idx_rfid_scan_logs_time ON ecommerce.rfid_scan_logs(scan_time);

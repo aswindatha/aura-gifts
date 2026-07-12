@@ -1,7 +1,5 @@
 {
-  "venvPath": "c:/Users/aswin/Music/aura_ui'/backend/aura-gifts/backend",
-  "venv": ".venv",
   "extraPaths": [
-    "c:/Users/aswin/Music/aura_ui'/backend/aura-gifts/backend"
+    ".venv/Lib/site-packages"
   ]
 }

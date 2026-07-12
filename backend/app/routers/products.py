@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from typing import List, Optional
 
 from app.database import get_db
@@ -33,6 +34,7 @@ async def list_products(
         Product.badge,
         Product.image_url,
         Product.out_of_stock,
+        Product.available_count,
         Product.mrp,
         Product.rating,
         Product.review_count,
@@ -76,6 +78,7 @@ async def list_products(
                 badge=row.badge,
                 image_url=row.image_url,
                 out_of_stock=row.out_of_stock,
+                available_count=row.available_count or 0,
                 mrp=float(row.mrp) if row.mrp is not None else None,
                 rating=float(row.rating) if row.rating is not None else None,
                 review_count=row.review_count or 0,
@@ -107,6 +110,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         Product.badge,
         Product.image_url,
         Product.out_of_stock,
+        Product.available_count,
         Product.mrp,
         Product.rating,
         Product.review_count,
@@ -136,6 +140,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         badge=row.badge,
         image_url=row.image_url,
         out_of_stock=row.out_of_stock,
+        available_count=row.available_count or 0,
         mrp=float(row.mrp) if row.mrp is not None else None,
         rating=float(row.rating) if row.rating is not None else None,
         review_count=row.review_count or 0,
@@ -171,6 +176,7 @@ async def create_product(
         badge=payload.badge,
         image_url=payload.image_url,
         out_of_stock=False,
+        available_count=payload.available_count or 0,
         mrp=payload.mrp,
         rating=payload.rating,
         review_count=0,
@@ -194,6 +200,7 @@ async def create_product(
         badge=new_product.badge,
         image_url=new_product.image_url,
         out_of_stock=new_product.out_of_stock,
+        available_count=new_product.available_count or 0,
         mrp=float(new_product.mrp) if new_product.mrp is not None else None,
         rating=float(new_product.rating) if new_product.rating is not None else None,
         review_count=new_product.review_count,
@@ -249,6 +256,7 @@ async def update_product(
         badge=product.badge,
         image_url=product.image_url,
         out_of_stock=product.out_of_stock,
+        available_count=product.available_count or 0,
         mrp=float(product.mrp) if product.mrp is not None else None,
         rating=float(product.rating) if product.rating is not None else None,
         review_count=product.review_count,
@@ -260,3 +268,32 @@ async def update_product(
         hex=product.hex,
         created_at=product.created_at
     )
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Permanently delete a product (Admin only).
+    """
+    if current_user.role != 1:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can delete products"
+        )
+
+    query = select(Product).where(Product.id == product_id)
+    result = await db.execute(query)
+    product = result.scalars().first()
+
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found"
+        )
+
+    await db.execute(delete(Product).where(Product.id == product_id))
+    await db.commit()
+    return None

@@ -37,13 +37,15 @@ No email or password needed. Click "Continue as Guest"
 on the login portal to browse and purchase items in
 guest mode.
 
-5. STAFF / EMPLOYEE (DAVE OPERATOR)
+5. STAFF / EMPLOYEE (DEVA)
 -------------------------------------------------------
-Identity/Email : dave@auraprints.com
-Password       : dave123
+Identity/Email : deva@auraprints.com
+Password       : deva123
 Role           : Employee (operator)
-Privileges     : Accesses Employee Task Board (/employee/tasks)
-                 to claim and complete production steps.
+App            : Workflow App (http://localhost:5174)
+Privileges     : Accesses the Workflow Application for employees.
+                 Can claim and complete production pipeline steps,
+                 view task board, and manage assigned print jobs.
 
 6. SHOP KEEPER (PUSHPAVEL)
 -------------------------------------------------------

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import boto3
 from botocore.config import Config
-from fastapi import APIRouter, Depends, HTTPException, status, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Request, UploadFile, File
 from pydantic import BaseModel, Field
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -629,10 +629,11 @@ async def cleanup_expired_files(
                 if os.path.exists(local_path):
                     os.remove(local_path)
             else:
-                s3_client.delete_object(
-                    Bucket=settings.R2_BUCKET_NAME,
-                    Key=file_record.object_key
-                )
+                if s3_client is not None:
+                    s3_client.delete_object(
+                        Bucket=settings.R2_BUCKET_NAME,
+                        Key=file_record.object_key
+                    )
             await db.delete(file_record)
             deleted_count += 1
         except Exception as e:
@@ -646,3 +647,28 @@ async def cleanup_expired_files(
         message += f" Failures: {len(errors)}."
 
     return StandardResponse(success=True, message=message)
+
+@router.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Uploads a file to the local storage space (same as NAS storage upload)"""
+    upload_dir = "uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Generate unique filename to avoid collision
+    filename = file.filename or "file"
+    file_ext = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    # Save the file locally
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not save file: {e}")
+        
+    return {
+        "filename": file.filename,
+        "unique_filename": unique_filename,
+        "url": f"/uploads/{unique_filename}"
+    }

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import delete
+from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -10,7 +10,7 @@ import razorpay
 from pydantic import BaseModel
 
 from app.database import get_db
-from app.models import Order, OrderItem, User, Cart, CartItem, Payment, WebhookEvent, Refund, UPIDetails
+from app.models import Order, OrderItem, User, Cart, CartItem, Payment, WebhookEvent, Refund, UPIDetails, Product
 from app.schemas import (
     CheckoutRequest,
     CheckoutResponse,
@@ -40,6 +40,60 @@ def get_razorpay_client():
         print(f"[Razorpay Client Init Warning]: {e}", flush=True)
         return None
 
+async def deduct_stock_for_order(db: AsyncSession, order: Order):
+    """Deduct stock for each product in the order. Idempotent via order.stock_deducted."""
+    if order.stock_deducted:
+        return
+    if not order.items:
+        return
+
+    insufficient_items = []
+    for item in order.items:
+        if not item.product_id or item.quantity <= 0:
+            continue
+        product_q = select(Product).where(Product.id == item.product_id)
+        product_res = await db.execute(product_q)
+        product = product_res.scalars().first()
+        if not product:
+            continue
+        if product.available_count < item.quantity:
+            insufficient_items.append(f"{product.name} (requested {item.quantity}, available {product.available_count})")
+
+    if insufficient_items:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient stock for: {', '.join(insufficient_items)}"
+        )
+
+    for item in order.items:
+        if not item.product_id or item.quantity <= 0:
+            continue
+        await db.execute(
+            update(Product)
+            .where(Product.id == item.product_id)
+            .values(available_count=Product.available_count - item.quantity)
+        )
+
+    order.stock_deducted = True
+    db.add(order)
+
+
+async def restore_stock_for_order(db: AsyncSession, order: Order):
+    """Restore stock when an order is cancelled. Only if stock was previously deducted."""
+    if not order.stock_deducted:
+        return
+    for item in order.items:
+        if not item.product_id or item.quantity <= 0:
+            continue
+        await db.execute(
+            update(Product)
+            .where(Product.id == item.product_id)
+            .values(available_count=Product.available_count + item.quantity)
+        )
+    order.stock_deducted = False
+    db.add(order)
+
+
 @router.post("/api/checkout", response_model=CheckoutResponse, status_code=status.HTTP_201_CREATED)
 async def checkout(
     payload: CheckoutRequest,
@@ -60,11 +114,26 @@ async def checkout(
             detail="Your cart is empty."
         )
 
-    # 2. Calculate totals
+    # 2. Validate stock availability before creating the order
+    for item in cart.items:
+        if not item.product_id or item.quantity <= 0:
+            continue
+        product_q = select(Product).where(Product.id == item.product_id)
+        product_res = await db.execute(product_q)
+        product = product_res.scalars().first()
+        if not product:
+            continue
+        if product.out_of_stock or product.available_count < item.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{product.name} is out of stock or has insufficient quantity (available: {product.available_count})."
+            )
+
+    # 4. Calculate totals
     subtotal = sum(float(item.unit_price) * item.quantity for item in cart.items)
     final_total = subtotal + payload.delivery_cost
 
-    # 3. Create the Order model
+    # 5. Create the Order model
     new_order = Order(
         user_id=current_user.id,
         total_amount=final_total,
@@ -82,16 +151,18 @@ async def checkout(
     db.add(new_order)
     await db.flush() # Generate order.id UUID
 
-    # 4. Copy CartItems to OrderItems
+    # 6. Copy CartItems to OrderItems
     for item in cart.items:
-        # Fetch product to copy name
+        # Fetch product to copy name and id
         product_q = select(CartItem).options(selectinload(CartItem.product)).where(CartItem.id == item.id)
         prod_res = await db.execute(product_q)
         cart_item_loaded = prod_res.scalars().first()
         product_name = cart_item_loaded.product.name if cart_item_loaded and cart_item_loaded.product else "Unknown Product"
-        
+        product_id = cart_item_loaded.product_id if cart_item_loaded else None
+
         new_item = OrderItem(
             order_id=new_order.id,
+            product_id=product_id,
             product_name=product_name,
             subtitle=None,
             price=item.unit_price,
@@ -100,7 +171,7 @@ async def checkout(
         )
         db.add(new_item)
 
-    # 5. Call Razorpay API to create an order
+    # 7. Call Razorpay API to create an order
     client = get_razorpay_client()
     amount_paise = int(final_total * 100)
     
@@ -132,7 +203,7 @@ async def checkout(
     new_order.payment_intent_id = razorpay_order_id
     db.add(new_order)
 
-    # 6. Create initial Payment entry
+    # 8. Create initial Payment entry
     new_payment = Payment(
         order_id=new_order.id,
         razorpay_order_id=razorpay_order_id,
@@ -143,7 +214,7 @@ async def checkout(
     )
     db.add(new_payment)
 
-    # 7. Clear database cart items
+    # 9. Clear database cart items
     clear_q = delete(CartItem).where(CartItem.cart_id == cart.id)
     await db.execute(clear_q)
 
@@ -166,8 +237,8 @@ async def verify_payment(
     """
     Verify payment signature after frontend checkout completion.
     """
-    # 1. Verify owner of the order
-    order_q = select(Order).where(Order.id == payload.order_id)
+    # 1. Verify owner of the order and load items
+    order_q = select(Order).options(selectinload(Order.items)).where(Order.id == payload.order_id)
     order_res = await db.execute(order_q)
     order = order_res.scalars().first()
 
@@ -219,6 +290,9 @@ async def verify_payment(
     # Update order status to 2 (Paid & Processing)
     order.status = 2
     db.add(order)
+
+    # Deduct stock for purchased products (idempotent)
+    await deduct_stock_for_order(db, order)
 
     await db.commit()
 
@@ -305,13 +379,17 @@ async def razorpay_webhook(
                 payment.payment_details = payment_entity
                 db.add(payment)
 
-                # Update Order status
-                order_q = select(Order).where(Order.id == payment.order_id)
+                # Update Order status and load items for stock deduction
+                order_q = select(Order).options(selectinload(Order.items)).where(Order.id == payment.order_id)
                 order_res = await db.execute(order_q)
                 order = order_res.scalars().first()
                 if order:
                     order.status = 2 # Paid & Processing
                     db.add(order)
+                    try:
+                        await deduct_stock_for_order(db, order)
+                    except HTTPException as stock_err:
+                        print(f"[Webhook Stock Deduction Warning] Order {order.id}: {stock_err.detail}", flush=True)
     elif event_type == "payment.failed":
         payment_entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
         rzp_order_id = payment_entity.get("order_id")
@@ -444,12 +522,13 @@ async def refund_payment(
         db.add(payment)
 
         # Optionally update Order status to 5 (Cancelled)
-        order_q = select(Order).where(Order.id == payload.order_id)
+        order_q = select(Order).options(selectinload(Order.items)).where(Order.id == payload.order_id)
         order_res = await db.execute(order_q)
         order = order_res.scalars().first()
         if order:
             order.status = 5
             db.add(order)
+            await restore_stock_for_order(db, order)
 
     await db.commit()
 

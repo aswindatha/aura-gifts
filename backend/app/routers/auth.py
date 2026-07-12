@@ -16,7 +16,7 @@ from app.models import User, OTPRecord
 from app.schemas import (
     UserCreate, UserResponse, LoginRequest, TokenResponse,
     SendOTPRequest, VerifyOTPRequest, SubscribeRequest, StandardResponse,
-    ProfileUpdateRequest, AdminUserUpdate, AdminUserCreate
+    ProfileUpdateRequest, AdminUserUpdate, AdminUserCreate, AdminEmployeeCreate
 )
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from app.config import settings
@@ -387,6 +387,51 @@ async def list_users(
         
     return users
 
+@router.get("/employees", response_model=List[UserResponse])
+async def list_employees(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Returns all users with role=employee (role=2).
+    Accessible by admin, shopkeeper, and employee roles.
+    Used to populate the task assignee dropdown in task orchestration.
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+
+    from app.schemas import ROLE_MAP, SUB_MAP
+    query = select(
+        User.id, User.name, User.email, User.phone, User.address,
+        User.role, User.points, User.subscription_tier,
+        User.subscription_expires_at, User.photo_url,
+        User.id_proof_type, User.id_proof_number, User.created_at
+    ).where(User.role == 2).order_by(User.name)
+
+    result = await db.execute(query)
+    return [
+        UserResponse(
+            id=row.id,
+            name=row.name,
+            email=row.email,
+            phone=row.phone,
+            address=row.address,
+            role=ROLE_MAP.get(row.role, "employee"),
+            points=row.points,
+            subscriptionTier=SUB_MAP.get(row.subscription_tier, "None"),
+            subscriptionTierCode=row.subscription_tier,
+            subscriptionExpiresAt=row.subscription_expires_at,
+            photo_url=row.photo_url,
+            id_proof_type=row.id_proof_type,
+            id_proof_number=row.id_proof_number,
+            created_at=row.created_at
+        )
+        for row in result.all()
+    ]
+
 @router.post("/users", response_model=UserResponse)
 async def create_user_by_admin(
     payload: AdminUserCreate,
@@ -461,6 +506,70 @@ async def create_user_by_admin(
         )
     )
     
+    return UserResponse.from_orm_model(new_user)
+
+@router.post("/employees", response_model=UserResponse)
+async def create_employee_by_admin(
+    payload: AdminEmployeeCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create a new employee account (role=2). Admin/Shopkeeper/Employee.
+    Default password is Welcome123. Employee is synced to the workflow DB.
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin, shopkeeper, or employee accounts can create employee accounts"
+        )
+
+    email = payload.email.strip().lower()
+
+    # Check duplicate
+    exist_q = select(User).where(User.email == email)
+    exist_res = await db.execute(exist_q)
+    if exist_res.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered"
+        )
+
+    raw_password = (payload.password or "Welcome123").strip() or "Welcome123"
+    hashed_pwd = get_password_hash(raw_password)
+
+    new_user = User(
+        name=payload.name.strip(),
+        email=email,
+        phone=payload.phone.strip() if payload.phone else None,
+        address=payload.address.strip() if payload.address else None,
+        password_hash=hashed_pwd,
+        email_verified=True,
+        role=2,  # employee
+        points=0,
+        subscription_tier=0,
+    )
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    # Sync to workflow NAS so employee shows in task assignment dropdown
+    from app.webhook_client import send_webhook
+    import asyncio
+    asyncio.create_task(
+        send_webhook(
+            "/users/sync",
+            {
+                "id": str(new_user.id),
+                "name": new_user.name,
+                "email": new_user.email,
+                "role": new_user.role,
+                "password_hash": new_user.password_hash
+            }
+        )
+    )
+
     return UserResponse.from_orm_model(new_user)
 
 @router.put("/users/{user_id}", response_model=UserResponse)
@@ -570,3 +679,41 @@ async def delete_user_by_admin(
     await db.commit()
 
     return StandardResponse(success=True, message="Subscription cancelled successfully")
+
+
+@router.delete("/employees/{user_id}", response_model=StandardResponse)
+async def delete_employee(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Permanently delete an employee account (Admin/Shopkeeper only).
+    Hard-deletes the row from the users table.
+    """
+    if current_user.role not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+
+    user_q = select(User).where(User.id == user_id)
+    user_res = await db.execute(user_q)
+    target_user = user_res.scalars().first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Employee not found"
+        )
+
+    # Only allow deleting employees (role=2)
+    if target_user.role != 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This endpoint can only delete employee accounts (role=employee)"
+        )
+
+    await db.delete(target_user)
+    await db.commit()
+
+    return StandardResponse(success=True, message=f"Employee '{target_user.name}' permanently deleted")

@@ -1,0 +1,132 @@
+=======================================================
+AURA PRINTS - SYSTEM TEST CREDENTIALS (NEW)
+=======================================================
+
+1. SYSTEM ADMINISTRATOR / SHOP KEEPER
+-------------------------------------------------------
+Identity/Email : admin@auraprints.com
+Password       : aura@2024
+Role           : Admin / Shop Keeper
+Privileges     : Full dashboard access.
+
+2. REGISTERED CUSTOMER (PREMIUM MEMBER)
+-------------------------------------------------------
+Identity/Email : customer@auraprints.com
+Password       : customer123
+Role           : Customer (user)
+Name           : Jane Doe
+Mobile/Phone   : 9876543210
+Loyalty Points : 450
+Subscription   : Premium
+
+3. REGISTERED CUSTOMER (STUDENT MEMBER)
+-------------------------------------------------------
+Identity/Email : student@auraprints.com
+Password       : student123
+Role           : Customer (user)
+Name           : Alex Patel
+Mobile/Phone   : 9876543211
+Loyalty Points : 150
+Subscription   : Student
+
+4. GUEST CUSTOMER
+-------------------------------------------------------
+No email or password needed. Click "Continue as Guest"
+on the login portal to browse and purchase items in
+guest mode.
+
+5. STAFF / EMPLOYEE (DEVA)
+-------------------------------------------------------
+Identity/Email : deva@auraprints.com
+Password       : deva123
+Role           : Employee (operator)
+App            : Workflow App (http://localhost:5174)
+Privileges     : Accesses the Workflow Application for employees.
+                 Can claim and complete production pipeline steps,
+                 view task board, and manage assigned print jobs.
+
+6. SHOP KEEPER (PUSHPAVEL)
+-------------------------------------------------------
+Identity/Email : pushpa@auraprints.com
+Password       : shopkeeper123
+Role           : Shopkeeper (PUSHPAVEL)
+Privileges     : Accesses Shopkeeper Command Center (/shopkeeper).
+
+7. DEVELOPER / USER (ASWIN DATHA)
+-------------------------------------------------------
+Identity/Email : aswindatha20@gmail.com
+Password       : (Standard user password set during registration)
+Role           : Customer (user)
+
+8. TEST SUBSCRIBER (RAVI KUMAR)
+-------------------------------------------------------
+Identity/Email : ravi.kumar@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 98765 43210
+Points         : 200
+Subscription   : Gold (Active, expires in ~90 days)
+RFID UID       : 12AB34CD
+
+9. TEST SUBSCRIBER (PRIYA PATEL)
+-------------------------------------------------------
+Identity/Email : priya.patel@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 95551 23456
+Points         : 500
+Subscription   : Premium (Active, expires in ~365 days)
+
+10. TEST SUBSCRIBER (ARJUN MEHTA)
+-------------------------------------------------------
+Identity/Email : arjun.mehta@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 91234 56789
+Points         : 80
+Subscription   : Silver (Active, expires in ~30 days)
+
+11. TEST SUBSCRIBER (SNEHA NAIR)
+-------------------------------------------------------
+Identity/Email : sneha.nair@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 88887 76655
+Points         : 30
+Subscription   : Student (Expiring soon, expires in ~10 days)
+
+12. TEST SUBSCRIBER (KARAN SINGH)
+-------------------------------------------------------
+Identity/Email : karan.singh@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 77776 54321
+Points         : 150
+Subscription   : Gold (Expiring soon, expires in ~7 days)
+
+13. TEST SUBSCRIBER (DIVYA REDDY)
+-------------------------------------------------------
+Identity/Email : divya.reddy@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 99887 11223
+Points         : 60
+Subscription   : Silver (Expired 15 days ago)
+
+14. TEST SUBSCRIBER (AMIT VERMA)
+-------------------------------------------------------
+Identity/Email : amit.verma@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 70001 23456
+Points         : 420
+Subscription   : Premium (Expired 2 days ago)
+
+15. TEST SUBSCRIBER (MEENA KRISHNAN)
+-------------------------------------------------------
+Identity/Email : meena.krishnan@example.com
+Password       : Welcome123
+Role           : Customer (user)
+Phone          : +91 80001 99887
+Points         : 0
+Subscription   : None (Registered user with no subscription)
