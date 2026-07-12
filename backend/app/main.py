@@ -137,17 +137,14 @@ app = FastAPI(title="Aura Prints API", description="FastAPI Backend for Aura Pri
 app.add_middleware(APILoggingMiddleware)
 
 # CORS middleware config to allow React client communication
-CORS_ORIGINS = (
-    [
-        "https://auraprintsandgifts.in",
-        "https://www.auraprintsandgifts.in",
-        "http://localhost:5173",          # local Vite dev
-        "capacitor://localhost",         # iOS mobile app
-        "http://localhost",                # Android mobile app
-    ]
-    if os.getenv("PRODUCTION", "0") == "1"
-    else ["*"]
-)
+# Always use explicit origins because allow_credentials=True is incompatible with ["*"]
+CORS_ORIGINS = [
+    "https://auraprintsandgifts.in",
+    "https://www.auraprintsandgifts.in",
+    "http://localhost:5173",          # local Vite dev
+    "capacitor://localhost",         # iOS mobile app
+    "http://localhost",                # Android mobile app
+]
 
 app.add_middleware(
     CORSMiddleware,
