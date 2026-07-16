@@ -186,6 +186,7 @@ class OrderItemCreate(BaseModel):
     price: float
     quantity: int
     uploaded_file_url: Optional[str] = None
+    product_id: Optional[int] = None
 
 class OrderItemResponse(BaseModel):
     id: UUID
@@ -205,6 +206,7 @@ class OrderCreate(BaseModel):
     delivery_type: str
     delivery_cost: float
     payment_screenshot_url: Optional[str] = None
+    payment_method: Optional[str] = None
     full_name: str
     street_address: str
     city: str
@@ -233,6 +235,7 @@ class OrderResponse(BaseModel):
     delivery_type: str
     delivery_cost: float
     payment_screenshot_url: Optional[str] = None
+    payment_method: Optional[str] = None
     full_name: str
     street_address: str
     city: str
@@ -255,6 +258,7 @@ class OrderResponse(BaseModel):
             delivery_type=order_obj.delivery_type,
             delivery_cost=float(order_obj.delivery_cost),
             payment_screenshot_url=sign_r2_url(order_obj.payment_screenshot_url),
+            payment_method=order_obj.payment_method,
             full_name=order_obj.full_name,
             street_address=order_obj.street_address,
             city=order_obj.city,
@@ -265,6 +269,7 @@ class OrderResponse(BaseModel):
             items=[
                 OrderItemResponse(
                     id=item.id,
+                    product_id=item.product_id,
                     product_name=item.product_name,
                     subtitle=item.subtitle,
                     price=float(item.price),

@@ -7,7 +7,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.database import get_db
-from app.models import Order, OrderItem, User, ChatMessage, Cart, CartItem
+from app.models import Order, OrderItem, User, ChatMessage, Cart, CartItem, Product
 from app.schemas import OrderCreate, OrderResponse, OrderStatusUpdate, StandardResponse
 from app.constants import OrderStatus
 from sqlalchemy import delete
@@ -31,6 +31,7 @@ async def create_order(
         delivery_type=payload.delivery_type,
         delivery_cost=payload.delivery_cost,
         payment_screenshot_url=payload.payment_screenshot_url,
+        payment_method=payload.payment_method,
         full_name=payload.full_name,
         street_address=payload.street_address,
         city=payload.city,
@@ -39,7 +40,7 @@ async def create_order(
     )
     db.add(new_order)
     await db.flush() # Flush to generate UUID primary key
-    
+
     for item in payload.items:
         new_item = OrderItem(
             order_id=new_order.id,
@@ -47,7 +48,8 @@ async def create_order(
             subtitle=item.subtitle,
             price=item.price,
             quantity=item.quantity,
-            uploaded_file_url=item.uploaded_file_url
+            uploaded_file_url=item.uploaded_file_url,
+            product_id=item.product_id
         )
         db.add(new_item)
 
@@ -263,7 +265,18 @@ async def update_order_status(
             )
             
     order.status = new_status_code
-    if new_status_code == 4: # 4 = Delivered (from ORDER_STATUS_MAP)
+    if new_status_code == 2 and not order.stock_deducted:
+        # Deduct stock when order moves to Paid & Processing
+        for item in order.items:
+            if item.product_id:
+                prod_q = select(Product).where(Product.id == item.product_id)
+                prod_res = await db.execute(prod_q)
+                product = prod_res.scalars().first()
+                if product:
+                    product.available_count = max(0, (product.available_count or 0) - item.quantity)
+                    db.add(product)
+        order.stock_deducted = True
+    elif new_status_code == 4: # 4 = Delivered (from ORDER_STATUS_MAP)
         await db.execute(delete(ChatMessage).where(ChatMessage.order_id == order.id))
     elif new_status_code == 5: # 5 = Cancelled
         from app.routers.payments import restore_stock_for_order
