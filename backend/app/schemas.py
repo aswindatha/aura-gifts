@@ -134,6 +134,7 @@ class ProductCreate(BaseModel):
     specs: dict = {}
     style_id: Optional[str] = None
     hex: Optional[str] = None
+    sku: Optional[str] = None
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -151,6 +152,7 @@ class ProductUpdate(BaseModel):
     specs: Optional[dict] = None
     style_id: Optional[str] = None
     hex: Optional[str] = None
+    sku: Optional[str] = None
 
 class ProductResponse(BaseModel):
     id: int
@@ -171,6 +173,7 @@ class ProductResponse(BaseModel):
     reviews: list[dict] = []
     style_id: Optional[str] = None
     hex: Optional[str] = None
+    sku: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -465,6 +468,7 @@ class OfferCreate(BaseModel):
     start_datetime: datetime
     end_datetime: datetime
     status: str = Field("ACTIVE", pattern="^(ACTIVE|INACTIVE)$")
+    promotion_group: Optional[str] = None
 
 class OfferUpdate(BaseModel):
     offer_name: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -481,6 +485,7 @@ class OfferUpdate(BaseModel):
     start_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
     status: Optional[str] = Field(None, pattern="^(ACTIVE|INACTIVE)$")
+    promotion_group: Optional[str] = None
 
 class OfferResponse(BaseModel):
     offer_id: UUID
@@ -498,6 +503,7 @@ class OfferResponse(BaseModel):
     start_datetime: datetime
     end_datetime: datetime
     status: str
+    promotion_group: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

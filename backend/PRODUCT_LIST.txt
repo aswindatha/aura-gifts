@@ -1,0 +1,267 @@
+====================================================================================================
+  AURA PRINTS & GIFTS — PRODUCT CATALOGUE (DB SNAPSHOT)
+  Generated: 2026-07-16 08:17:28
+  Total Products: 122
+====================================================================================================
+
+  ┌─ FRAMES (9 products — 9 priced, 0 unpriced)
+  │
+  │  ID=2    | (no sku)               | Charcoal Walnut Frame                                   | Rs 1,650.00                 
+  │  ID=3    | (no sku)               | Classic Oak Frame                                       | Rs 1,450.00                  [Hot Seller]
+  │  ID=8    | (no sku)               | Elegance 9-Photo Collage Frame                          | Rs 2,850.00                 
+  │  ID=6    | (no sku)               | Gallery Black Frame                                     | Rs 1,300.00                 
+  │  ID=7    | (no sku)               | Lustre Fine Art Photo Print                             | Rs 350.00                   
+  │  ID=5    | (no sku)               | Minimalist White Frame                                  | Rs 1,250.00                  [New Release]
+  │  ID=9    | (no sku)               | Modern Gold Floating Canvas                             | Rs 2,200.00                 
+  │  ID=4    | (no sku)               | Modern Gold Frame                                       | Rs 2,400.00                  [Trending]
+  │  ID=1    | (no sku)               | Teakwood Gallery Frame                                  | Rs 1,250.00                  [Featured]
+  │
+
+  ┌─ OFFICE & GIFTS (2 products — 2 priced, 0 unpriced)
+  │
+  │  ID=14   | (no sku)               | Solid Walnut Desk Organizer                             | Rs 1,650.00                  [Best Seller]
+  │  ID=13   | (no sku)               | Vintage Brass Desk Clock                                | Rs 2,900.00                  [Popular]
+  │
+
+  ┌─ STATIONERY (4 products — 4 priced, 0 unpriced)
+  │
+  │  ID=10   | (no sku)               | Executive Indigo Rollerball                             | Rs 3,500.00                  [Bestseller]
+  │  ID=12   | (no sku)               | Handcrafted Leather Journal                             | Rs 1,850.00                  [Artisanal]
+  │  ID=11   | (no sku)               | Midnight Resin Fountain Pen                             | Rs 6,500.00                  [Out of Stock] | OUT OF STOCK
+  │  ID=15   | (no sku)               | Royal Brass Wax Seal Kit                                | Rs 1,450.00                  [Collector]
+  │
+
+  ┌─ BOUQUET (3 products — 3 priced, 0 unpriced)
+  │
+  │  ID=89   | ABQ-CHOCOLATE          | Chocolate Bouquet                                       | Rs 350.00                   
+  │  ID=90   | ABQ-FLOWER             | Flower Bouquet                                          | Rs 350.00                   
+  │  ID=91   | ABQ-PHOTO              | Photo Bouquet                                           | Rs 350.00                   
+  │
+
+  ┌─ CALENDAR (4 products — 4 priced, 0 unpriced)
+  │
+  │  ID=87   | ACAL-12-H              | 12-Page Hanging Calendar                                | Rs 700.00                   
+  │  ID=85   | ACAL-12-T              | 12-Page Tabletop Calendar                               | Rs 450.00                   
+  │  ID=88   | ACAL-6-H               | 6-Page Hanging Calendar                                 | Rs 550.00                   
+  │  ID=86   | ACAL-6-T               | 6-Page Tabletop Calendar                                | Rs 250.00                   
+  │
+
+  ┌─ CORPORATE (5 products — 0 priced, 5 unpriced)
+  │
+  │  ID=96   | (no sku)               | Backlit Prints                                          | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=93   | (no sku)               | Badges                                                  | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=92   | (no sku)               | ID Cards                                                | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=95   | (no sku)               | Logo Stickers                                           | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=94   | (no sku)               | Pamphlets                                               | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │
+
+  ┌─ FRAME (17 products — 0 priced, 17 unpriced)
+  │
+  │  ID=117  | AFRM-FAREWELL          | Farewell Frame                                          | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 4x4, 12x10, 15x10, 18x12
+  │  ID=118  | AFRM-MINI              | Mini Frame                                              | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 4x4, 5x5
+  │  ID=120  | AFRM-PHOTO-COLLAGE     | Photo Collage Frame                                     | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 6x4-2/4x4-2/3x3-2/5x5-2, 6x4-2/4x4-2/3x3-2/6x6-2
+  │  ID=121  | AFRM-PLASTIC-BEADING   | Plastic Beading Frame                                   | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x12, 12x15
+  │  ID=119  | AFRM-WEDDING           | Wedding Frame                                           | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x12, 18x12
+  │  ID=105  | AFRM1                  | Normal Frame (Type A — Matte/Glossy/Glitter)            | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 4x4, 6x4, 6x8, 7x5, 10x8, 12x8, 12x10, 12x15, 15x10, 18x12, 24x16, 12x12, 24x12, 24x18, 20x30, 24x30
+  │  ID=112  | AFRM11                 | LED Frame                                               | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 7x5, 12x10, 12x8
+  │  ID=115  | AFRM12                 | Embroidery Frame                                        | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 7x8, 12x8, 12x10
+  │  ID=109  | AFRM14                 | Collage Frame                                           | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x15, 24x12
+  │  ID=108  | AFRM15                 | Certificate Frame                                       | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 6x4, 12x10
+  │  ID=113  | AFRM17                 | Collage Popup Frame                                     | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x12, 15x10, 12x10
+  │  ID=106  | AFRM2                  | Normal Frame (Type B — 2mm Acrylic)                     | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 4x4, 6x4, 6x8, 7x5, 10x8, 12x8, 12x10, 12x15, 15x10, 18x12, 24x16, 12x12, 24x12, 24x18, 20x30, 24x30
+  │  ID=110  | AFRM3                  | 3D Miniature Frame                                      | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 8x8, 10x15
+  │  ID=111  | AFRM4                  | 3D Element Frame                                        | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 8x8, 12x8, 15x10
+  │  ID=114  | AFRM7                  | Canvas Frame                                            | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x15, 12x12
+  │  ID=116  | AFRM8                  | Split Frame                                             | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 12x12, 6x8
+  │  ID=107  | AFRM9                  | Story Frame                                             | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Frame sizes: 4x4, 12x10, 15x10, 18x12
+  │
+
+  ┌─ GIFT_BUNDLE (1 products — 0 priced, 1 unpriced)
+  │
+  │  ID=122  | AGB-GIFT-PKG           | Customized Gift Package (Wall Hanging + Polaroids + LED | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │
+
+  ┌─ INVITATION (2 products — 0 priced, 2 unpriced)
+  │
+  │  ID=104  | (no sku)               | A4 Invitations                                          | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Qty range: 50-250 copies
+  │  ID=103  | (no sku)               | A5 Invitations                                          | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │         Qty range: 100-500 copies
+  │
+
+  ┌─ KEYCHAIN (5 products — 5 priced, 0 unpriced)
+  │
+  │  ID=35   | ABO                    | Bottle Opener                                           | Rs 100.00                   
+  │  ID=34   | AMiKe                  | Mirror Keychain                                         | Rs 70.00                    
+  │  ID=31   | AMK-C-44               | Circle Metal Keychain — 44mm                            | Rs 50.00                    
+  │  ID=32   | AMK-C-58               | Circle Metal Keychain — 58mm                            | Rs 60.00                    
+  │  ID=33   | AMK-C-75               | Circle Metal Keychain — 75mm                            | Rs 95.00                    
+  │
+
+  ┌─ MAGAZINE (12 products — 12 priced, 0 unpriced)
+  │
+  │  ID=76   | APM-A3                 | A3 Photo Magazine — 4 Pages                             | Rs 349.00                   
+  │  ID=84   | APM-A3-12              | A3 Photo Magazine — 12 Pages                            | Rs 699.00                   
+  │  ID=80   | APM-A3-8               | A3 Photo Magazine — 8 Pages                             | Rs 499.00                   
+  │  ID=75   | APM-A4                 | A4 Photo Magazine — 4 Pages                             | Rs 249.00                   
+  │  ID=83   | APM-A4-12              | A4 Photo Magazine — 12 Pages                            | Rs 599.00                   
+  │  ID=79   | APM-A4-8               | A4 Photo Magazine — 8 Pages                             | Rs 399.00                   
+  │  ID=74   | APM-A5                 | A5 Photo Magazine — 4 Pages                             | Rs 99.00                    
+  │  ID=82   | APM-A5-12              | A5 Photo Magazine — 12 Pages                            | Rs 299.00                   
+  │  ID=78   | APM-A5-8               | A5 Photo Magazine — 8 Pages                             | Rs 199.00                   
+  │  ID=73   | APM-S                  | Small Photo Magazine — 4 Pages                          | Rs 70.00                    
+  │  ID=81   | APM-S-12               | Small Photo Magazine — 12 Pages                         | Rs 199.00                   
+  │  ID=77   | APM-S-8                | Small Photo Magazine — 8 Pages                          | Rs 149.00                   
+  │
+
+  ┌─ MAGNET (15 products — 15 priced, 0 unpriced)
+  │
+  │  ID=20   | AAM-2.5                | Square Acrylic Photo Magnet — 2.5x2.5in                 | Rs 40.00                    
+  │  ID=22   | AAM-2.5x6              | Square Acrylic Photo Magnet — 2.5x6in                   | Rs 99.00                    
+  │  ID=21   | AAM-4x3                | Square Acrylic Photo Magnet — 4x3in                     | Rs 60.00                    
+  │  ID=25   | AAM-C                  | Circle Shaped Acrylic Photo Magnet                      | Rs 129.00                   
+  │  ID=24   | AAM-H                  | Heart Shaped Acrylic Photo Magnet                       | Rs 129.00                   
+  │  ID=26   | AAM-P                  | Pentagon Shaped Acrylic Photo Magnet                    | Rs 129.00                   
+  │  ID=23   | AAM-SL                 | Square Acrylic Photo Magnet — 4x6in                     | Rs 199.00                   
+  │  ID=27   | ACM-2.5                | Customised Sheet Photo Magnet — 2.5x2.5in               | Rs 30.00                    
+  │  ID=30   | ACM-2.5x6              | Customised Sheet Photo Magnet — 2.5x6in                 | Rs 60.00                    
+  │  ID=29   | ACM-4x3                | Customised Sheet Photo Magnet — 4x3in                   | Rs 45.00                    
+  │  ID=28   | ACM-5                  | Customised Sheet Photo Magnet — 5x5in                   | Rs 50.00                    
+  │  ID=16   | AMM-C-44               | Circle Fridge Magnet — 44mm                             | Rs 45.00                    
+  │  ID=17   | AMM-C-58               | Circle Fridge Magnet — 58mm                             | Rs 45.00                    
+  │  ID=18   | AMM-C-75               | Circle Fridge Magnet — 75mm                             | Rs 89.00                    
+  │  ID=19   | AMM-S-50               | Square Fridge Magnet — 50x50mm                          | Rs 50.00                    
+  │
+
+  ┌─ PHOTOBOOK (12 products — 12 priced, 0 unpriced)
+  │
+  │  ID=72   | APB-A3-12              | A3 Photo Book — 12 Pages                                | Rs 699.00                   
+  │  ID=64   | APB-A3-4               | A3 Photo Book — 4 Pages                                 | Rs 349.00                   
+  │  ID=68   | APB-A3-8               | A3 Photo Book — 8 Pages                                 | Rs 499.00                   
+  │  ID=71   | APB-A4-12              | A4 Photo Book — 12 Pages                                | Rs 599.00                   
+  │  ID=63   | APB-A4-4               | A4 Photo Book — 4 Pages                                 | Rs 249.00                   
+  │  ID=67   | APB-A4-8               | A4 Photo Book — 8 Pages                                 | Rs 399.00                   
+  │  ID=70   | APB-A5-12              | A5 Photo Book — 12 Pages                                | Rs 299.00                   
+  │  ID=62   | APB-A5-4               | A5 Photo Book — 4 Pages                                 | Rs 99.00                    
+  │  ID=66   | APB-A5-8               | A5 Photo Book — 8 Pages                                 | Rs 199.00                   
+  │  ID=69   | APB-S-12               | Small Photo Book — 12 Pages                             | Rs 199.00                   
+  │  ID=61   | APB-S-4                | Small Photo Book — 4 Pages                              | Rs 70.00                    
+  │  ID=65   | APB-S-8                | Small Photo Book — 8 Pages                              | Rs 149.00                   
+  │
+
+  ┌─ POLAROID (11 products — 11 priced, 0 unpriced)
+  │
+  │  ID=53   | APD-M-3/4              | 3/4 Polaroid Mini                                       | Rs 5.00                     
+  │  ID=51   | APD-M-b                | Bordered Mini Polaroid                                  | Rs 5.00                     
+  │  ID=59   | APD-M-b-color          | Bordered Custom Color Mini Polaroid                     | Rs 7.00                     
+  │  ID=50   | APD-M-bl               | Borderless Mini Polaroid                                | Rs 5.00                     
+  │  ID=52   | APD-M-r                | Retro Type Mini Polaroid                                | Rs 5.00                     
+  │  ID=57   | APD-N-3/4              | 3/4 Polaroid Normal                                     | Rs 15.00                    
+  │  ID=55   | APD-N-b                | Bordered Normal Polaroid                                | Rs 15.00                    
+  │  ID=60   | APD-N-b-color          | Bordered Custom Color Normal Polaroid                   | Rs 18.00                    
+  │  ID=54   | APD-N-bl               | Borderless Normal Polaroid                              | Rs 15.00                    
+  │  ID=58   | APD-N-fs               | Film Strip Polaroid                                     | Rs 75.00                    
+  │  ID=56   | APD-N-r                | Retro Type Normal Polaroid                              | Rs 15.00                    
+  │
+
+  ┌─ POSTER (14 products — 14 priced, 0 unpriced)
+  │
+  │  ID=38   | APR-A3                 | A3 Size Poster                                          | Rs 60.00                    
+  │  ID=44   | APR-A3-2               | A3 2-Split Poster                                       | Rs 129.00                   
+  │  ID=45   | APR-A3-3               | A3 3-Split Poster                                       | Rs 199.00                   
+  │  ID=46   | APR-A3-4               | A3 4-Split Poster                                       | Rs 269.00                   
+  │  ID=39   | APR-A3+                | A3+ Size Poster                                         | Rs 70.00                    
+  │  ID=47   | APR-A3+2               | A3+ 2-Split Poster                                      | Rs 159.00                   
+  │  ID=48   | APR-A3+3               | A3+ 3-Split Poster                                      | Rs 229.00                   
+  │  ID=49   | APR-A3+4               | A3+ 4-Split Poster                                      | Rs 339.00                   
+  │  ID=37   | APR-A4                 | A4 Size Poster                                          | Rs 30.00                    
+  │  ID=41   | APR-A4-2               | A4 2-Split Poster                                       | Rs 79.00                    
+  │  ID=42   | APR-A4-3               | A4 3-Split Poster                                       | Rs 119.00                   
+  │  ID=43   | APR-A4-4               | A4 4-Split Poster                                       | Rs 149.00                   
+  │  ID=36   | APR-A5                 | A5 Size Poster                                          | Rs 20.00                    
+  │  ID=40   | APR-MAXI               | 4x6 Size Poster (Maxi)                                  | Rs 15.00                    
+  │
+
+  ┌─ STICKER_GIFT (6 products — 2 priced, 4 unpriced)
+  │
+  │  ID=97   | (no sku)               | Custom Name Label                                       | Rs 50.00                    
+  │  ID=99   | (no sku)               | Customised Chocolates                                   | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=101  | (no sku)               | Customised Playing Cards                                | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=102  | (no sku)               | Customised Uno Cards                                    | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=100  | (no sku)               | Photo Clock                                             | Rs 0.00 (NEEDS PRICING)      [PRICE_CONFIRMATION_NEEDED]
+  │  ID=98   | (no sku)               | Ready-Made Label                                        | Rs 35.00                    
+  │
+
+====================================================================================================
+  UNPRICED ITEMS (price=0 — shopkeeper must confirm pricing)
+====================================================================================================
+  (no sku)               | corporate       | Backlit Prints
+  (no sku)               | corporate       | Badges
+  (no sku)               | corporate       | ID Cards
+  (no sku)               | corporate       | Logo Stickers
+  (no sku)               | corporate       | Pamphlets
+  AFRM-FAREWELL          | frame           | Farewell Frame
+  AFRM-MINI              | frame           | Mini Frame
+  AFRM-PHOTO-COLLAGE     | frame           | Photo Collage Frame
+  AFRM-PLASTIC-BEADING   | frame           | Plastic Beading Frame
+  AFRM-WEDDING           | frame           | Wedding Frame
+  AFRM1                  | frame           | Normal Frame (Type A — Matte/Glossy/Glitter)
+  AFRM11                 | frame           | LED Frame
+  AFRM12                 | frame           | Embroidery Frame
+  AFRM14                 | frame           | Collage Frame
+  AFRM15                 | frame           | Certificate Frame
+  AFRM17                 | frame           | Collage Popup Frame
+  AFRM2                  | frame           | Normal Frame (Type B — 2mm Acrylic)
+  AFRM3                  | frame           | 3D Miniature Frame
+  AFRM4                  | frame           | 3D Element Frame
+  AFRM7                  | frame           | Canvas Frame
+  AFRM8                  | frame           | Split Frame
+  AFRM9                  | frame           | Story Frame
+  AGB-GIFT-PKG           | gift_bundle     | Customized Gift Package (Wall Hanging + Polaroids + LED + Decor)
+  (no sku)               | invitation      | A4 Invitations
+  (no sku)               | invitation      | A5 Invitations
+  (no sku)               | sticker_gift    | Customised Chocolates
+  (no sku)               | sticker_gift    | Customised Playing Cards
+  (no sku)               | sticker_gift    | Customised Uno Cards
+  (no sku)               | sticker_gift    | Photo Clock
+
+====================================================================================================
+  CATEGORY SUMMARY
+====================================================================================================
+  Category              Total  Priced  Unpriced
+  -------------------- ------ ------- ---------
+  Frames                    9       9         0
+  Office & Gifts            2       2         0
+  Stationery                4       4         0
+  bouquet                   3       3         0
+  calendar                  4       4         0
+  corporate                 5       0         5
+  frame                    17       0        17
+  gift_bundle               1       0         1
+  invitation                2       0         2
+  keychain                  5       5         0
+  magazine                 12      12         0
+  magnet                   15      15         0
+  photobook                12      12         0
+  polaroid                 11      11         0
+  poster                   14      14         0
+  sticker_gift              6       2         4
+  -------------------- ------ ------- ---------
+  TOTAL                   122      93        29

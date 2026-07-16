@@ -17,7 +17,7 @@ async def list_products(
     exclude_category: Optional[str] = None,
     names: Optional[List[str]] = Query(None),
     ids: Optional[List[int]] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db)
 ):
@@ -44,9 +44,10 @@ async def list_products(
         Product.reviews,
         Product.style_id,
         Product.hex,
+        Product.sku,
         Product.created_at
     )
-    
+
     if category:
         query = query.where(Product.category == category)
     if exclude_category:
@@ -88,10 +89,11 @@ async def list_products(
                 reviews=row.reviews or [],
                 style_id=row.style_id,
                 hex=row.hex,
+                sku=row.sku,
                 created_at=row.created_at
             )
         )
-    
+
     cat_info = f" [category={category}]" if category else " [all categories]"
     print(f"[DB] GET /api/products{cat_info} -> {len(products)} product(s) fetched from database", flush=True)
     return products
@@ -120,6 +122,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         Product.reviews,
         Product.style_id,
         Product.hex,
+        Product.sku,
         Product.created_at
     ).where(Product.id == product_id)
     
@@ -150,6 +153,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         reviews=row.reviews or [],
         style_id=row.style_id,
         hex=row.hex,
+        sku=row.sku,
         created_at=row.created_at
     )
 
@@ -185,6 +189,7 @@ async def create_product(
         specs=payload.specs,
         style_id=payload.style_id,
         hex=payload.hex,
+        sku=payload.sku,
         reviews=[]
     )
     db.add(new_product)
@@ -210,6 +215,7 @@ async def create_product(
         reviews=new_product.reviews or [],
         style_id=new_product.style_id,
         hex=new_product.hex,
+        sku=new_product.sku,
         created_at=new_product.created_at
     )
 
@@ -266,6 +272,7 @@ async def update_product(
         reviews=product.reviews or [],
         style_id=product.style_id,
         hex=product.hex,
+        sku=product.sku,
         created_at=product.created_at
     )
 

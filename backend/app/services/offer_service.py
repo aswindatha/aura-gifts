@@ -90,6 +90,7 @@ def offer_to_dict(offer: Offer) -> Dict[str, Any]:
         "start_datetime": offer.start_datetime,
         "end_datetime": offer.end_datetime,
         "status": offer.status,
+        "promotion_group": offer.promotion_group,
         "created_at": offer.created_at,
         "updated_at": offer.updated_at,
     }
@@ -193,11 +194,15 @@ async def find_conflicts(
     start_datetime: datetime,
     end_datetime: datetime,
     exclude_offer_id: Optional[UUID] = None,
+    promotion_group: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Return a list of conflict dicts for ACTIVE offers overlapping on the
     same product(s) and date range. Each dict:
         { offer_id, offer_name, overlapping_products: [int, ...] }
+
+    Carve-out: offers sharing the same promotion_group (tiered promotions)
+    are allowed to coexist and do NOT count as conflicts.
     """
     if product_scope == "SINGLE_PRODUCT":
         target_ids: Set[int] = {product_id} if product_id is not None else set()
@@ -221,6 +226,9 @@ async def find_conflicts(
 
     conflicts: List[Dict[str, Any]] = []
     for ex in existing:
+        # Carve-out: skip offers in the same promotion_group (tiered promotions)
+        if promotion_group is not None and ex.promotion_group == promotion_group:
+            continue
         ex_ids = _offer_product_ids(ex)
         overlap = target_ids & ex_ids
         if overlap:
@@ -241,6 +249,7 @@ async def _assert_no_conflict(
     start_datetime: datetime,
     end_datetime: datetime,
     exclude_offer_id: Optional[UUID] = None,
+    promotion_group: Optional[str] = None,
 ) -> None:
     conflicts = await find_conflicts(
         db,
@@ -250,6 +259,7 @@ async def _assert_no_conflict(
         start_datetime=start_datetime,
         end_datetime=end_datetime,
         exclude_offer_id=exclude_offer_id,
+        promotion_group=promotion_group,
     )
     if conflicts:
         ids = [c["offer_id"] for c in conflicts]
@@ -361,6 +371,7 @@ async def create_offer(db: AsyncSession, payload: Dict[str, Any]) -> Dict[str, A
         start_datetime=payload["start_datetime"],
         end_datetime=payload["end_datetime"],
         status=payload["status"],
+        promotion_group=payload.get("promotion_group"),
     )
     db.add(offer)
     await db.flush()
@@ -385,6 +396,7 @@ async def create_offer(db: AsyncSession, payload: Dict[str, Any]) -> Dict[str, A
             start_datetime=offer.start_datetime,
             end_datetime=offer.end_datetime,
             exclude_offer_id=offer.offer_id,
+            promotion_group=offer.promotion_group,
         )
 
     await db.commit()
@@ -402,7 +414,7 @@ def _apply_updates(offer: Offer, payload: Dict[str, Any]) -> None:
         "offer_name", "criteria_type", "product_scope", "product_id",
         "required_count", "required_value", "reward_type",
         "free_product_id", "free_product_qty", "discount_percentage",
-        "start_datetime", "end_datetime", "status",
+        "start_datetime", "end_datetime", "status", "promotion_group",
     )
     for f in simple_fields:
         if f in payload:
@@ -430,6 +442,7 @@ async def update_offer(
         "qualifying_product_ids", "required_count", "required_value",
         "reward_type", "free_product_id", "free_product_qty",
         "discount_percentage", "start_datetime", "end_datetime", "status",
+        "promotion_group",
     )
     for f in all_fields:
         if f in payload and payload[f] is not None:
@@ -509,6 +522,7 @@ async def update_offer(
             start_datetime=offer.start_datetime,
             end_datetime=offer.end_datetime,
             exclude_offer_id=offer.offer_id,
+            promotion_group=offer.promotion_group,
         )
 
     await db.commit()
@@ -538,6 +552,7 @@ async def set_offer_status(db: AsyncSession, offer_id: UUID, new_status: str) ->
             start_datetime=offer.start_datetime,
             end_datetime=offer.end_datetime,
             exclude_offer_id=offer.offer_id,
+            promotion_group=offer.promotion_group,
         )
 
     await db.commit()
@@ -974,6 +989,7 @@ async def check_existing_offer_conflicts(
         start_datetime=offer.start_datetime,
         end_datetime=offer.end_datetime,
         exclude_offer_id=offer.offer_id,
+        promotion_group=offer.promotion_group,
     )
     return {"has_conflict": bool(conflicts), "conflicts": conflicts}
 
@@ -987,6 +1003,7 @@ async def check_candidate_conflicts(
     start_datetime: datetime,
     end_datetime: datetime,
     exclude_offer_id: Optional[UUID] = None,
+    promotion_group: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Pre-save conflict check for a candidate offer (not yet persisted)."""
     conflicts = await find_conflicts(
@@ -997,6 +1014,7 @@ async def check_candidate_conflicts(
         start_datetime=start_datetime,
         end_datetime=end_datetime,
         exclude_offer_id=exclude_offer_id,
+        promotion_group=promotion_group,
     )
     return {"has_conflict": bool(conflicts), "conflicts": conflicts}
 

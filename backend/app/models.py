@@ -93,6 +93,7 @@ class Product(Base):
     reviews = Column(JSON, nullable=True)
     style_id = Column(String(50), nullable=True)
     hex = Column(String(10), nullable=True)
+    sku = Column(String(100), nullable=True, unique=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
 class Order(Base):
@@ -322,6 +323,7 @@ class Offer(Base):
     start_datetime = Column(DateTime(timezone=True), nullable=False)
     end_datetime = Column(DateTime(timezone=True), nullable=False)
     status = Column(String(10), nullable=False, default="ACTIVE")  # ACTIVE | INACTIVE
+    promotion_group = Column(String(100), nullable=True)  # tiers of same promotion share this
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 

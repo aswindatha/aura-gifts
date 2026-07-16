@@ -1,0 +1,195 @@
+{
+  "total_created": 107,
+  "total_updated": 0,
+  "products_by_category": {
+    "bouquet": 3,
+    "calendar": 4,
+    "corporate": 5,
+    "frame": 17,
+    "gift_bundle": 1,
+    "invitation": 2,
+    "keychain": 5,
+    "magazine": 12,
+    "magnet": 15,
+    "photobook": 12,
+    "polaroid": 11,
+    "poster": 14,
+    "sticker_gift": 6
+  },
+  "unpriced_items": [
+    {
+      "sku": null,
+      "name": "ID Cards",
+      "category": "corporate",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Badges",
+      "category": "corporate",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Pamphlets",
+      "category": "corporate",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Logo Stickers",
+      "category": "corporate",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Backlit Prints",
+      "category": "corporate",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Customised Chocolates",
+      "category": "sticker_gift",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Photo Clock",
+      "category": "sticker_gift",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Customised Playing Cards",
+      "category": "sticker_gift",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "Customised Uno Cards",
+      "category": "sticker_gift",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "A5 Invitations",
+      "category": "invitation",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": null,
+      "name": "A4 Invitations",
+      "category": "invitation",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM1",
+      "name": "Normal Frame (Type A — Matte/Glossy/Glitter)",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM2",
+      "name": "Normal Frame (Type B — 2mm Acrylic)",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM9",
+      "name": "Story Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM15",
+      "name": "Certificate Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM14",
+      "name": "Collage Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM3",
+      "name": "3D Miniature Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM4",
+      "name": "3D Element Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM11",
+      "name": "LED Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM17",
+      "name": "Collage Popup Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM7",
+      "name": "Canvas Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM12",
+      "name": "Embroidery Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM8",
+      "name": "Split Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM-FAREWELL",
+      "name": "Farewell Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM-MINI",
+      "name": "Mini Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM-WEDDING",
+      "name": "Wedding Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM-PHOTO-COLLAGE",
+      "name": "Photo Collage Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AFRM-PLASTIC-BEADING",
+      "name": "Plastic Beading Frame",
+      "category": "frame",
+      "reason": "No price in xlsx"
+    },
+    {
+      "sku": "AGB-GIFT-PKG",
+      "name": "Customized Gift Package",
+      "category": "gift_bundle",
+      "reason": "No price in xlsx"
+    }
+  ]
+}

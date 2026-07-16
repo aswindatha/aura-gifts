@@ -1,0 +1,2023 @@
+[
+  {
+    "id": 89,
+    "sku": "ABQ-CHOCOLATE",
+    "name": "Chocolate Bouquet",
+    "category": "bouquet",
+    "price": 350.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 90,
+    "sku": "ABQ-FLOWER",
+    "name": "Flower Bouquet",
+    "category": "bouquet",
+    "price": 350.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 91,
+    "sku": "ABQ-PHOTO",
+    "name": "Photo Bouquet",
+    "category": "bouquet",
+    "price": 350.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 87,
+    "sku": "ACAL-12-H",
+    "name": "12-Page Hanging Calendar",
+    "category": "calendar",
+    "price": 700.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 85,
+    "sku": "ACAL-12-T",
+    "name": "12-Page Tabletop Calendar",
+    "category": "calendar",
+    "price": 450.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 88,
+    "sku": "ACAL-6-H",
+    "name": "6-Page Hanging Calendar",
+    "category": "calendar",
+    "price": 550.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 86,
+    "sku": "ACAL-6-T",
+    "name": "6-Page Tabletop Calendar",
+    "category": "calendar",
+    "price": 250.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 96,
+    "sku": null,
+    "name": "Backlit Prints",
+    "category": "corporate",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 93,
+    "sku": null,
+    "name": "Badges",
+    "category": "corporate",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 92,
+    "sku": null,
+    "name": "ID Cards",
+    "category": "corporate",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 95,
+    "sku": null,
+    "name": "Logo Stickers",
+    "category": "corporate",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 94,
+    "sku": null,
+    "name": "Pamphlets",
+    "category": "corporate",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 117,
+    "sku": "AFRM-FAREWELL",
+    "name": "Farewell Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "farewell",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "4x4",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        },
+        {
+          "size": "18x12",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 118,
+    "sku": "AFRM-MINI",
+    "name": "Mini Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "mini",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "4x4",
+          "price": 0
+        },
+        {
+          "size": "5x5",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 120,
+    "sku": "AFRM-PHOTO-COLLAGE",
+    "name": "Photo Collage Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "photo_collage",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "6x4-2/4x4-2/3x3-2/5x5-2",
+          "price": 0
+        },
+        {
+          "size": "6x4-2/4x4-2/3x3-2/6x6-2",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 121,
+    "sku": "AFRM-PLASTIC-BEADING",
+    "name": "Plastic Beading Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "plastic_beading",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "12x15",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 119,
+    "sku": "AFRM-WEDDING",
+    "name": "Wedding Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "wedding",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "18x12",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 105,
+    "sku": "AFRM1",
+    "name": "Normal Frame (Type A — Matte/Glossy/Glitter)",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "frame_a",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "4x4",
+          "price": 0
+        },
+        {
+          "size": "6x4",
+          "price": 0
+        },
+        {
+          "size": "6x8",
+          "price": 0
+        },
+        {
+          "size": "7x5",
+          "price": 0
+        },
+        {
+          "size": "10x8",
+          "price": 0
+        },
+        {
+          "size": "12x8",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        },
+        {
+          "size": "12x15",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        },
+        {
+          "size": "18x12",
+          "price": 0
+        },
+        {
+          "size": "24x16",
+          "price": 0
+        },
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "24x12",
+          "price": 0
+        },
+        {
+          "size": "24x18",
+          "price": 0
+        },
+        {
+          "size": "20x30",
+          "price": 0
+        },
+        {
+          "size": "24x30",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 112,
+    "sku": "AFRM11",
+    "name": "LED Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "led",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "7x5",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        },
+        {
+          "size": "12x8",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 115,
+    "sku": "AFRM12",
+    "name": "Embroidery Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "embroidery",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "7x8",
+          "price": 0
+        },
+        {
+          "size": "12x8",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 109,
+    "sku": "AFRM14",
+    "name": "Collage Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "collage",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x15",
+          "price": 0
+        },
+        {
+          "size": "24x12",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 108,
+    "sku": "AFRM15",
+    "name": "Certificate Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "certificate",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "6x4",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 113,
+    "sku": "AFRM17",
+    "name": "Collage Popup Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "collage_popup",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 106,
+    "sku": "AFRM2",
+    "name": "Normal Frame (Type B — 2mm Acrylic)",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "frame_b",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "4x4",
+          "price": 0
+        },
+        {
+          "size": "6x4",
+          "price": 0
+        },
+        {
+          "size": "6x8",
+          "price": 0
+        },
+        {
+          "size": "7x5",
+          "price": 0
+        },
+        {
+          "size": "10x8",
+          "price": 0
+        },
+        {
+          "size": "12x8",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        },
+        {
+          "size": "12x15",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        },
+        {
+          "size": "18x12",
+          "price": 0
+        },
+        {
+          "size": "24x16",
+          "price": 0
+        },
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "24x12",
+          "price": 0
+        },
+        {
+          "size": "24x18",
+          "price": 0
+        },
+        {
+          "size": "20x30",
+          "price": 0
+        },
+        {
+          "size": "24x30",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 110,
+    "sku": "AFRM3",
+    "name": "3D Miniature Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "3d_mini",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "8x8",
+          "price": 0
+        },
+        {
+          "size": "10x15",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 111,
+    "sku": "AFRM4",
+    "name": "3D Element Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "3d_element",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "8x8",
+          "price": 0
+        },
+        {
+          "size": "12x8",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 114,
+    "sku": "AFRM7",
+    "name": "Canvas Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "canvas",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x15",
+          "price": 0
+        },
+        {
+          "size": "12x12",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 116,
+    "sku": "AFRM8",
+    "name": "Split Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "split",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "12x12",
+          "price": 0
+        },
+        {
+          "size": "6x8",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 107,
+    "sku": "AFRM9",
+    "name": "Story Frame",
+    "category": "frame",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "story",
+    "specs": {
+      "frame_sizes": [
+        {
+          "size": "4x4",
+          "price": 0
+        },
+        {
+          "size": "12x10",
+          "price": 0
+        },
+        {
+          "size": "15x10",
+          "price": 0
+        },
+        {
+          "size": "18x12",
+          "price": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "sku": null,
+    "name": "Charcoal Walnut Frame",
+    "category": "Frames",
+    "price": 1650.0,
+    "mrp": 2200.0,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "black",
+    "specs": {
+      "Finish": "Satin Wax Matte",
+      "Origin": "Made in India",
+      "Mount Type": "Wall Mount Only",
+      "Profile Width": "0.85 inches",
+      "Frame Material": "Stained Walnut Wood"
+    }
+  },
+  {
+    "id": 3,
+    "sku": null,
+    "name": "Classic Oak Frame",
+    "category": "Frames",
+    "price": 1450.0,
+    "mrp": 1950.0,
+    "badge": "Hot Seller",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "oak",
+    "specs": {
+      "Finish": "Raw Organic Matte",
+      "Origin": "Made in India",
+      "Mount Type": "Wall / Tabletop convertible",
+      "Profile Width": "0.70 inches",
+      "Frame Material": "Genuine White Oak"
+    }
+  },
+  {
+    "id": 8,
+    "sku": null,
+    "name": "Elegance 9-Photo Collage Frame",
+    "category": "Frames",
+    "price": 2850.0,
+    "mrp": 3900.0,
+    "badge": null,
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "black",
+    "specs": {
+      "Origin": "Imported",
+      "Mat Board": "Archival acid-free bevel-cut matting",
+      "Photo Size": "Fits 4\" x 4\" square prints",
+      "Layout style": "9-Photo 3x3 Grid Matrix",
+      "Frame Material": "Satin Black Engineered Wood"
+    }
+  },
+  {
+    "id": 6,
+    "sku": null,
+    "name": "Gallery Black Frame",
+    "category": "Frames",
+    "price": 1300.0,
+    "mrp": 1750.0,
+    "badge": null,
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "black",
+    "specs": {
+      "Color": "Satin Gallery Black",
+      "Origin": "Made in India",
+      "Mount Type": "Wall Mount",
+      "Profile Width": "0.80 inches",
+      "Frame Material": "Solid Pine Wood"
+    }
+  },
+  {
+    "id": 7,
+    "sku": null,
+    "name": "Lustre Fine Art Photo Print",
+    "category": "Frames",
+    "price": 350.0,
+    "mrp": 500.0,
+    "badge": null,
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "print",
+    "specs": {
+      "Origin": "Printed in India",
+      "Ink Tech": "12-color archival pigment inks",
+      "Paper Type": "Lustre Archival Photo Paper",
+      "Paper Weight": "260 gsm",
+      "Print Finish": "Semi-matte / Lustre"
+    }
+  },
+  {
+    "id": 5,
+    "sku": null,
+    "name": "Minimalist White Frame",
+    "category": "Frames",
+    "price": 1250.0,
+    "mrp": 1600.0,
+    "badge": "New Release",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "white",
+    "specs": {
+      "Color": "Matte Studio White",
+      "Origin": "Made in India",
+      "Mount Type": "Wall / Tabletop convertible",
+      "Profile Width": "0.75 inches",
+      "Frame Material": "Engineered Pine Wood"
+    }
+  },
+  {
+    "id": 9,
+    "sku": null,
+    "name": "Modern Gold Floating Canvas",
+    "category": "Frames",
+    "price": 2200.0,
+    "mrp": 3000.0,
+    "badge": null,
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "gold",
+    "specs": {
+      "Origin": "Made in India",
+      "Shadow Gap": "0.25 inches around canvas",
+      "Mount style": "Internal float clamp mounts",
+      "Finish style": "Brushed Luxury Gold",
+      "Frame Material": "Anodized Aluminum Alloy"
+    }
+  },
+  {
+    "id": 4,
+    "sku": null,
+    "name": "Modern Gold Frame",
+    "category": "Frames",
+    "price": 2400.0,
+    "mrp": 3200.0,
+    "badge": "Trending",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": "gold",
+    "specs": {
+      "Color": "Brushed Luxury Gold",
+      "Origin": "Imported",
+      "Mount Type": "Wall Mounting Only",
+      "Profile Width": "0.50 inches (ultra-slim)",
+      "Frame Material": "Anodized Aluminum Alloy"
+    }
+  },
+  {
+    "id": 1,
+    "sku": null,
+    "name": "Teakwood Gallery Frame",
+    "category": "Frames",
+    "price": 1250.0,
+    "mrp": 1800.0,
+    "badge": "Featured",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": "oak",
+    "specs": {
+      "Origin": "Handmade in India",
+      "Mount Type": "Wall Hanging / Tabletop convertible",
+      "Profile Width": "0.75 inches",
+      "Frame Material": "Genuine Premium Teakwood",
+      "Hanging Hardware": "Pre-attached D-rings and wiring"
+    }
+  },
+  {
+    "id": 122,
+    "sku": "AGB-GIFT-PKG",
+    "name": "Customized Gift Package (Wall Hanging + Polaroids + LED + Decor)",
+    "category": "gift_bundle",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "components": [
+        "Wall Hanging",
+        "Customized Polaroids",
+        "LED Lights",
+        "Decorative Leaves"
+      ],
+      "description": "Customized gift package for Grand Opening offer"
+    }
+  },
+  {
+    "id": 104,
+    "sku": null,
+    "name": "A4 Invitations",
+    "category": "invitation",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "max_qty": 250,
+      "min_qty": 50
+    }
+  },
+  {
+    "id": 103,
+    "sku": null,
+    "name": "A5 Invitations",
+    "category": "invitation",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "max_qty": 500,
+      "min_qty": 100
+    }
+  },
+  {
+    "id": 35,
+    "sku": "ABO",
+    "name": "Bottle Opener",
+    "category": "keychain",
+    "price": 100.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 34,
+    "sku": "AMiKe",
+    "name": "Mirror Keychain",
+    "category": "keychain",
+    "price": 70.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 31,
+    "sku": "AMK-C-44",
+    "name": "Circle Metal Keychain — 44mm",
+    "category": "keychain",
+    "price": 50.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 32,
+    "sku": "AMK-C-58",
+    "name": "Circle Metal Keychain — 58mm",
+    "category": "keychain",
+    "price": 60.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 33,
+    "sku": "AMK-C-75",
+    "name": "Circle Metal Keychain — 75mm",
+    "category": "keychain",
+    "price": 95.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 76,
+    "sku": "APM-A3",
+    "name": "A3 Photo Magazine — 4 Pages",
+    "category": "magazine",
+    "price": 349.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 84,
+    "sku": "APM-A3-12",
+    "name": "A3 Photo Magazine — 12 Pages",
+    "category": "magazine",
+    "price": 699.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 80,
+    "sku": "APM-A3-8",
+    "name": "A3 Photo Magazine — 8 Pages",
+    "category": "magazine",
+    "price": 499.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 75,
+    "sku": "APM-A4",
+    "name": "A4 Photo Magazine — 4 Pages",
+    "category": "magazine",
+    "price": 249.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 83,
+    "sku": "APM-A4-12",
+    "name": "A4 Photo Magazine — 12 Pages",
+    "category": "magazine",
+    "price": 599.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 79,
+    "sku": "APM-A4-8",
+    "name": "A4 Photo Magazine — 8 Pages",
+    "category": "magazine",
+    "price": 399.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 74,
+    "sku": "APM-A5",
+    "name": "A5 Photo Magazine — 4 Pages",
+    "category": "magazine",
+    "price": 99.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 82,
+    "sku": "APM-A5-12",
+    "name": "A5 Photo Magazine — 12 Pages",
+    "category": "magazine",
+    "price": 299.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 78,
+    "sku": "APM-A5-8",
+    "name": "A5 Photo Magazine — 8 Pages",
+    "category": "magazine",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 73,
+    "sku": "APM-S",
+    "name": "Small Photo Magazine — 4 Pages",
+    "category": "magazine",
+    "price": 70.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 81,
+    "sku": "APM-S-12",
+    "name": "Small Photo Magazine — 12 Pages",
+    "category": "magazine",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 77,
+    "sku": "APM-S-8",
+    "name": "Small Photo Magazine — 8 Pages",
+    "category": "magazine",
+    "price": 149.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 20,
+    "sku": "AAM-2.5",
+    "name": "Square Acrylic Photo Magnet — 2.5x2.5in",
+    "category": "magnet",
+    "price": 40.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 22,
+    "sku": "AAM-2.5x6",
+    "name": "Square Acrylic Photo Magnet — 2.5x6in",
+    "category": "magnet",
+    "price": 99.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 21,
+    "sku": "AAM-4x3",
+    "name": "Square Acrylic Photo Magnet — 4x3in",
+    "category": "magnet",
+    "price": 60.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 25,
+    "sku": "AAM-C",
+    "name": "Circle Shaped Acrylic Photo Magnet",
+    "category": "magnet",
+    "price": 129.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 24,
+    "sku": "AAM-H",
+    "name": "Heart Shaped Acrylic Photo Magnet",
+    "category": "magnet",
+    "price": 129.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 26,
+    "sku": "AAM-P",
+    "name": "Pentagon Shaped Acrylic Photo Magnet",
+    "category": "magnet",
+    "price": 129.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 23,
+    "sku": "AAM-SL",
+    "name": "Square Acrylic Photo Magnet — 4x6in",
+    "category": "magnet",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 27,
+    "sku": "ACM-2.5",
+    "name": "Customised Sheet Photo Magnet — 2.5x2.5in",
+    "category": "magnet",
+    "price": 30.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 30,
+    "sku": "ACM-2.5x6",
+    "name": "Customised Sheet Photo Magnet — 2.5x6in",
+    "category": "magnet",
+    "price": 60.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 29,
+    "sku": "ACM-4x3",
+    "name": "Customised Sheet Photo Magnet — 4x3in",
+    "category": "magnet",
+    "price": 45.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 28,
+    "sku": "ACM-5",
+    "name": "Customised Sheet Photo Magnet — 5x5in",
+    "category": "magnet",
+    "price": 50.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 16,
+    "sku": "AMM-C-44",
+    "name": "Circle Fridge Magnet — 44mm",
+    "category": "magnet",
+    "price": 45.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 17,
+    "sku": "AMM-C-58",
+    "name": "Circle Fridge Magnet — 58mm",
+    "category": "magnet",
+    "price": 45.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 18,
+    "sku": "AMM-C-75",
+    "name": "Circle Fridge Magnet — 75mm",
+    "category": "magnet",
+    "price": 89.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 19,
+    "sku": "AMM-S-50",
+    "name": "Square Fridge Magnet — 50x50mm",
+    "category": "magnet",
+    "price": 50.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 14,
+    "sku": null,
+    "name": "Solid Walnut Desk Organizer",
+    "category": "Office & Gifts",
+    "price": 1650.0,
+    "mrp": 2100.0,
+    "badge": "Best Seller",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "Slots": "1 Phone stand, 3 Pen holes, 1 Letter slot, 1 Tray",
+      "Finish": "Satin Wax Matte Coating",
+      "Origin": "Made in India",
+      "Material": "Solid American Walnut Wood",
+      "Dimensions": "10.2\" L x 4.0\" W x 1.8\" H"
+    }
+  },
+  {
+    "id": 13,
+    "sku": null,
+    "name": "Vintage Brass Desk Clock",
+    "category": "Office & Gifts",
+    "price": 2900.0,
+    "mrp": 3800.0,
+    "badge": "Popular",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "Weight": "480 grams",
+      "Movement": "Silent Sweep Quartz",
+      "Dimensions": "4.5\" Diameter x 2.2\" Depth",
+      "Dial Window": "Flat Mineral Glass",
+      "Body Material": "Solid Forged Brass"
+    }
+  },
+  {
+    "id": 72,
+    "sku": "APB-A3-12",
+    "name": "A3 Photo Book — 12 Pages",
+    "category": "photobook",
+    "price": 699.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 64,
+    "sku": "APB-A3-4",
+    "name": "A3 Photo Book — 4 Pages",
+    "category": "photobook",
+    "price": 349.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 68,
+    "sku": "APB-A3-8",
+    "name": "A3 Photo Book — 8 Pages",
+    "category": "photobook",
+    "price": 499.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 71,
+    "sku": "APB-A4-12",
+    "name": "A4 Photo Book — 12 Pages",
+    "category": "photobook",
+    "price": 599.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 63,
+    "sku": "APB-A4-4",
+    "name": "A4 Photo Book — 4 Pages",
+    "category": "photobook",
+    "price": 249.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 67,
+    "sku": "APB-A4-8",
+    "name": "A4 Photo Book — 8 Pages",
+    "category": "photobook",
+    "price": 399.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 70,
+    "sku": "APB-A5-12",
+    "name": "A5 Photo Book — 12 Pages",
+    "category": "photobook",
+    "price": 299.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 62,
+    "sku": "APB-A5-4",
+    "name": "A5 Photo Book — 4 Pages",
+    "category": "photobook",
+    "price": 99.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 66,
+    "sku": "APB-A5-8",
+    "name": "A5 Photo Book — 8 Pages",
+    "category": "photobook",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 69,
+    "sku": "APB-S-12",
+    "name": "Small Photo Book — 12 Pages",
+    "category": "photobook",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 61,
+    "sku": "APB-S-4",
+    "name": "Small Photo Book — 4 Pages",
+    "category": "photobook",
+    "price": 70.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 65,
+    "sku": "APB-S-8",
+    "name": "Small Photo Book — 8 Pages",
+    "category": "photobook",
+    "price": 149.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 53,
+    "sku": "APD-M-3/4",
+    "name": "3/4 Polaroid Mini",
+    "category": "polaroid",
+    "price": 5.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 51,
+    "sku": "APD-M-b",
+    "name": "Bordered Mini Polaroid",
+    "category": "polaroid",
+    "price": 5.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 59,
+    "sku": "APD-M-b-color",
+    "name": "Bordered Custom Color Mini Polaroid",
+    "category": "polaroid",
+    "price": 7.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 50,
+    "sku": "APD-M-bl",
+    "name": "Borderless Mini Polaroid",
+    "category": "polaroid",
+    "price": 5.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 52,
+    "sku": "APD-M-r",
+    "name": "Retro Type Mini Polaroid",
+    "category": "polaroid",
+    "price": 5.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 57,
+    "sku": "APD-N-3/4",
+    "name": "3/4 Polaroid Normal",
+    "category": "polaroid",
+    "price": 15.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 55,
+    "sku": "APD-N-b",
+    "name": "Bordered Normal Polaroid",
+    "category": "polaroid",
+    "price": 15.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 60,
+    "sku": "APD-N-b-color",
+    "name": "Bordered Custom Color Normal Polaroid",
+    "category": "polaroid",
+    "price": 18.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 54,
+    "sku": "APD-N-bl",
+    "name": "Borderless Normal Polaroid",
+    "category": "polaroid",
+    "price": 15.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 58,
+    "sku": "APD-N-fs",
+    "name": "Film Strip Polaroid",
+    "category": "polaroid",
+    "price": 75.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 56,
+    "sku": "APD-N-r",
+    "name": "Retro Type Normal Polaroid",
+    "category": "polaroid",
+    "price": 15.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 38,
+    "sku": "APR-A3",
+    "name": "A3 Size Poster",
+    "category": "poster",
+    "price": 60.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 44,
+    "sku": "APR-A3-2",
+    "name": "A3 2-Split Poster",
+    "category": "poster",
+    "price": 129.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 45,
+    "sku": "APR-A3-3",
+    "name": "A3 3-Split Poster",
+    "category": "poster",
+    "price": 199.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 46,
+    "sku": "APR-A3-4",
+    "name": "A3 4-Split Poster",
+    "category": "poster",
+    "price": 269.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 39,
+    "sku": "APR-A3+",
+    "name": "A3+ Size Poster",
+    "category": "poster",
+    "price": 70.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 47,
+    "sku": "APR-A3+2",
+    "name": "A3+ 2-Split Poster",
+    "category": "poster",
+    "price": 159.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 48,
+    "sku": "APR-A3+3",
+    "name": "A3+ 3-Split Poster",
+    "category": "poster",
+    "price": 229.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 49,
+    "sku": "APR-A3+4",
+    "name": "A3+ 4-Split Poster",
+    "category": "poster",
+    "price": 339.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 37,
+    "sku": "APR-A4",
+    "name": "A4 Size Poster",
+    "category": "poster",
+    "price": 30.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 41,
+    "sku": "APR-A4-2",
+    "name": "A4 2-Split Poster",
+    "category": "poster",
+    "price": 79.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 42,
+    "sku": "APR-A4-3",
+    "name": "A4 3-Split Poster",
+    "category": "poster",
+    "price": 119.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 43,
+    "sku": "APR-A4-4",
+    "name": "A4 4-Split Poster",
+    "category": "poster",
+    "price": 149.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 36,
+    "sku": "APR-A5",
+    "name": "A5 Size Poster",
+    "category": "poster",
+    "price": 20.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 40,
+    "sku": "APR-MAXI",
+    "name": "4x6 Size Poster (Maxi)",
+    "category": "poster",
+    "price": 15.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 10,
+    "sku": null,
+    "name": "Executive Indigo Rollerball",
+    "category": "Stationery",
+    "price": 3500.0,
+    "mrp": 4200.0,
+    "badge": "Bestseller",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "Refill": "Standard Schmidt P8126 refill",
+      "Weight": "42 grams",
+      "Ink Type": "German Liquid Gel Ink",
+      "Material": "Lacquered Brass",
+      "Nib Size": "0.7mm Medium Rollerball"
+    }
+  },
+  {
+    "id": 12,
+    "sku": null,
+    "name": "Handcrafted Leather Journal",
+    "category": "Stationery",
+    "price": 1850.0,
+    "mrp": 2500.0,
+    "badge": "Artisanal",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "Origin": "Handcrafted in Rajasthan",
+      "Dimensions": "8.3\" x 5.8\" (A5 Size)",
+      "Paper Type": "125 GSM Recycled Cotton Paper",
+      "Page Layout": "Unlined / Plain",
+      "Cover Material": "Genuine Full-Grain Leather"
+    }
+  },
+  {
+    "id": 11,
+    "sku": null,
+    "name": "Midnight Resin Fountain Pen",
+    "category": "Stationery",
+    "price": 6500.0,
+    "mrp": 7500.0,
+    "badge": "Out of Stock",
+    "available_count": 0,
+    "out_of_stock": true,
+    "style_id": null,
+    "specs": {
+      "Nib": "Medium Gold-Plated Steel",
+      "Origin": "Imported",
+      "Weight": "28 grams",
+      "Filling": "Cartridge / Converter",
+      "Material": "Polished Resin & Gold Accents"
+    }
+  },
+  {
+    "id": 15,
+    "sku": null,
+    "name": "Royal Brass Wax Seal Kit",
+    "category": "Stationery",
+    "price": 1450.0,
+    "mrp": 1950.0,
+    "badge": "Collector",
+    "available_count": 0,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": {
+      "Die Designs": "Tree of Life, Rose, Royal Crown",
+      "Wax Quantity": "Approx. 120 beads per bottle",
+      "Melting Spoon": "Brass with insulated wooden handle",
+      "Box Dimensions": "7.8\" x 5.6\" x 1.6\"",
+      "Stamp Material": "Polished Brass & Rosewood Handle"
+    }
+  },
+  {
+    "id": 97,
+    "sku": null,
+    "name": "Custom Name Label",
+    "category": "sticker_gift",
+    "price": 50.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 99,
+    "sku": null,
+    "name": "Customised Chocolates",
+    "category": "sticker_gift",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 101,
+    "sku": null,
+    "name": "Customised Playing Cards",
+    "category": "sticker_gift",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 102,
+    "sku": null,
+    "name": "Customised Uno Cards",
+    "category": "sticker_gift",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 100,
+    "sku": null,
+    "name": "Photo Clock",
+    "category": "sticker_gift",
+    "price": 0,
+    "mrp": null,
+    "badge": "PRICE_CONFIRMATION_NEEDED",
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  },
+  {
+    "id": 98,
+    "sku": null,
+    "name": "Ready-Made Label",
+    "category": "sticker_gift",
+    "price": 35.0,
+    "mrp": null,
+    "badge": null,
+    "available_count": 100,
+    "out_of_stock": false,
+    "style_id": null,
+    "specs": null
+  }
+]
