@@ -1,353 +1,16 @@
--- ============================================================================
--- AURA Prints & Gifts — Complete Database Dump for Supabase Import
--- Generated: 2026-07-16 10:02:10
--- ============================================================================
-
--- This script will:
---   1. Create the 'ecommerce' schema
---   2. Create all tables with columns, primary keys, unique constraints, FKs
---   3. Insert all data (products, offers, users, UPI details, etc.)
---   4. Recreate indexes
-
--- Safe to run multiple times (TRUNCATE first, then INSERT fresh data)
-
--- ============================================================================
--- SECTION 1: SCHEMA SETUP
+`-- ============================================================================
+-- AURA Prints & Gifts — DATA ONLY (for Supabase with existing schema)
+-- Generated: 2026-07-16 10:25:30
 -- ============================================================================
 
-CREATE SCHEMA IF NOT EXISTS "ecommerce";
-
--- Enable uuid-ossp for uuid_generate_v4() (Supabase has this by default)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- ============================================================================
--- SECTION 2: CREATE TABLES
--- ============================================================================
-
--- Table: ecommerce.users
-CREATE TABLE IF NOT EXISTS "ecommerce"."users" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "name" VARCHAR(255) NOT NULL,
-    "email" VARCHAR(255) NOT NULL,
-    "phone" VARCHAR(50),
-    "password_hash" VARCHAR(255) NOT NULL,
-    "email_verified" BOOLEAN NOT NULL DEFAULT FALSE,
-    "role" SMALLINT NOT NULL DEFAULT 4,
-    "points" INTEGER NOT NULL DEFAULT 0,
-    "subscription_tier" SMALLINT NOT NULL DEFAULT 0,
-    "subscription_expires_at" TIMESTAMPTZ,
-    "address" TEXT,
-    "photo_url" VARCHAR(500),
-    "id_proof_type" VARCHAR(100),
-    "id_proof_number" VARCHAR(100),
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "users_email_key" UNIQUE ("email")
-);
-
--- Table: ecommerce.rfid_cards
-CREATE TABLE IF NOT EXISTS "ecommerce"."rfid_cards" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "user_id" UUID NOT NULL,
-    "rfid_uid" VARCHAR(255) NOT NULL,
-    "is_active" BOOLEAN NOT NULL DEFAULT TRUE,
-    "deactivated_at" TIMESTAMPTZ,
-    "assigned_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "assigned_by" UUID,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "rfid_cards_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE RESTRICT,
-    CONSTRAINT "rfid_cards_assigned_by_fkey" FOREIGN KEY ("assigned_by") REFERENCES "ecommerce"."users" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.rfid_scan_logs
-CREATE TABLE IF NOT EXISTS "ecommerce"."rfid_scan_logs" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "rfid_uid" VARCHAR(255) NOT NULL,
-    "user_id" UUID,
-    "scan_time" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "status" VARCHAR(50) NOT NULL,
-    "scanner_id" VARCHAR(100) DEFAULT 'admin_console'::character varying,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "rfid_scan_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.otps
-CREATE TABLE IF NOT EXISTS "ecommerce"."otps" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "email" VARCHAR(255) NOT NULL,
-    "otp_code" VARCHAR(255) NOT NULL,
-    "expires_at" TIMESTAMPTZ NOT NULL,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "last_sent_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "attempts" INTEGER NOT NULL DEFAULT 0,
-    "verified" BOOLEAN NOT NULL DEFAULT FALSE,
-    "resend_count" INTEGER NOT NULL DEFAULT 1,
-    PRIMARY KEY ("id")
-);
-
--- Table: ecommerce.products
-CREATE TABLE IF NOT EXISTS "ecommerce"."products" (
-    "id" INTEGER NOT NULL DEFAULT nextval('ecommerce.products_id_seq'::regclass),
-    "name" VARCHAR(255) NOT NULL,
-    "description" TEXT,
-    "price" NUMERIC(10,2) NOT NULL,
-    "category" VARCHAR(100),
-    "badge" VARCHAR(50),
-    "image_url" TEXT,
-    "out_of_stock" BOOLEAN DEFAULT FALSE,
-    "mrp" NUMERIC(10,2),
-    "rating" NUMERIC(3,2),
-    "review_count" INTEGER DEFAULT 0,
-    "images" JSONB,
-    "features" JSONB,
-    "specs" JSONB,
-    "reviews" JSONB,
-    "style_id" VARCHAR(50),
-    "hex" VARCHAR(10),
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "available_count" INTEGER NOT NULL DEFAULT 0,
-    "sku" VARCHAR(100),
-    PRIMARY KEY ("id")
-);
-
--- Table: ecommerce.orders
-CREATE TABLE IF NOT EXISTS "ecommerce"."orders" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "user_id" UUID,
-    "total_amount" NUMERIC(10,2) NOT NULL,
-    "status" SMALLINT NOT NULL DEFAULT 1,
-    "delivery_type" VARCHAR(100) NOT NULL,
-    "delivery_cost" NUMERIC(10,2) NOT NULL DEFAULT 0.00,
-    "payment_method" VARCHAR(50),
-    "payment_intent_id" VARCHAR(255),
-    "payment_screenshot_url" TEXT,
-    "full_name" VARCHAR(255) NOT NULL,
-    "street_address" TEXT NOT NULL,
-    "city" VARCHAR(100) NOT NULL,
-    "pin_code" VARCHAR(20) NOT NULL,
-    "phone_number" VARCHAR(50) NOT NULL,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "pipeline_steps" JSONB,
-    "stock_deducted" BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.order_items
-CREATE TABLE IF NOT EXISTS "ecommerce"."order_items" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "order_id" UUID NOT NULL,
-    "product_id" INTEGER,
-    "product_name" VARCHAR(255) NOT NULL,
-    "subtitle" VARCHAR(255),
-    "price" NUMERIC(10,2) NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "uploaded_file_url" TEXT,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "ecommerce"."orders" ("id") ON DELETE CASCADE,
-    CONSTRAINT "order_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "ecommerce"."products" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.chat_messages
-CREATE TABLE IF NOT EXISTS "ecommerce"."chat_messages" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "order_id" UUID NOT NULL,
-    "sender_user_id" UUID,
-    "sender_role" SMALLINT NOT NULL,
-    "text" TEXT,
-    "image_url" TEXT,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "read_at" TIMESTAMPTZ,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "chat_messages_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "ecommerce"."orders" ("id") ON DELETE CASCADE,
-    CONSTRAINT "chat_messages_sender_user_id_fkey" FOREIGN KEY ("sender_user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.audit_logs
-CREATE TABLE IF NOT EXISTS "ecommerce"."audit_logs" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "user_id" UUID,
-    "action" VARCHAR(255) NOT NULL,
-    "details" JSONB,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.media_files
-CREATE TABLE IF NOT EXISTS "ecommerce"."media_files" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "order_id" UUID,
-    "object_key" VARCHAR(500) NOT NULL,
-    "mime_type" VARCHAR(100) NOT NULL,
-    "size" INTEGER,
-    "is_public" BOOLEAN NOT NULL DEFAULT FALSE,
-    "category" VARCHAR(50) NOT NULL,
-    "delete_after" TIMESTAMPTZ,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "media_files_object_key_key" UNIQUE ("object_key"),
-    CONSTRAINT "media_files_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "ecommerce"."orders" ("id") ON DELETE SET NULL
-);
-
--- Table: ecommerce.carts
-CREATE TABLE IF NOT EXISTS "ecommerce"."carts" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "user_id" UUID NOT NULL,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "carts_user_id_key" UNIQUE ("user_id"),
-    CONSTRAINT "carts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "ecommerce"."users" ("id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.cart_items
-CREATE TABLE IF NOT EXISTS "ecommerce"."cart_items" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "cart_id" UUID NOT NULL,
-    "product_id" INTEGER NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "unit_price" NUMERIC(10,2) NOT NULL,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "cart_items_cart_id_fkey" FOREIGN KEY ("cart_id") REFERENCES "ecommerce"."carts" ("id") ON DELETE CASCADE,
-    CONSTRAINT "cart_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "ecommerce"."products" ("id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.payments
-CREATE TABLE IF NOT EXISTS "ecommerce"."payments" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "order_id" UUID NOT NULL,
-    "razorpay_order_id" VARCHAR(255) NOT NULL,
-    "razorpay_payment_id" VARCHAR(255),
-    "razorpay_signature" VARCHAR(255),
-    "amount" NUMERIC(10,2) NOT NULL,
-    "currency" VARCHAR(3) NOT NULL DEFAULT 'INR'::character varying,
-    "status" VARCHAR(20) NOT NULL DEFAULT 'created'::character varying,
-    "payment_method" VARCHAR(50),
-    "payment_details" JSONB,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "payments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "ecommerce"."orders" ("id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.webhook_events
-CREATE TABLE IF NOT EXISTS "ecommerce"."webhook_events" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "event_id" VARCHAR(255) NOT NULL,
-    "event_type" VARCHAR(100) NOT NULL,
-    "payload" JSONB NOT NULL,
-    "processed" BOOLEAN NOT NULL DEFAULT FALSE,
-    "processed_at" TIMESTAMPTZ,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "webhook_events_event_id_key" UNIQUE ("event_id")
-);
-
--- Table: ecommerce.refunds
-CREATE TABLE IF NOT EXISTS "ecommerce"."refunds" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
-    "payment_id" UUID NOT NULL,
-    "razorpay_refund_id" VARCHAR(255) NOT NULL,
-    "amount" NUMERIC(10,2) NOT NULL,
-    "reason" TEXT,
-    "status" VARCHAR(20) NOT NULL DEFAULT 'pending'::character varying,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "refunds_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "ecommerce"."payments" ("id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.upi_details
-CREATE TABLE IF NOT EXISTS "ecommerce"."upi_details" (
-    "id" INTEGER NOT NULL DEFAULT nextval('ecommerce.upi_details_id_seq'::regclass),
-    "upi_id" VARCHAR(255) NOT NULL,
-    "account_holder_name" VARCHAR(255) NOT NULL DEFAULT 'AURA PRINTS'::character varying,
-    "upi_url" TEXT NOT NULL,
-    "qr_url" TEXT NOT NULL,
-    "updated_at" TIMESTAMPTZ,
-    PRIMARY KEY ("id")
-);
-
--- Table: ecommerce.workflow_templates
-CREATE TABLE IF NOT EXISTS "ecommerce"."workflow_templates" (
-    "id" UUID NOT NULL,
-    "name" VARCHAR(255) NOT NULL,
-    "created_by" UUID NOT NULL,
-    "steps" JSON NOT NULL,
-    "is_active" BOOLEAN NOT NULL,
-    "created_at" TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "workflow_templates_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "ecommerce"."users" ("id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.customer_info
-CREATE TABLE IF NOT EXISTS "ecommerce"."customer_info" (
-    "id" UUID NOT NULL,
-    "name" VARCHAR(255) NOT NULL,
-    "phone" VARCHAR(50) NOT NULL,
-    "email" VARCHAR(255),
-    "address" TEXT,
-    "is_sub_user" BOOLEAN NOT NULL,
-    "created_at" TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ,
-    PRIMARY KEY ("id")
-);
-
--- Table: ecommerce.offers
-CREATE TABLE IF NOT EXISTS "ecommerce"."offers" (
-    "offer_id" UUID NOT NULL,
-    "offer_name" VARCHAR(100) NOT NULL,
-    "criteria_type" VARCHAR(20) NOT NULL,
-    "product_scope" VARCHAR(20) NOT NULL,
-    "product_id" INTEGER,
-    "required_count" INTEGER,
-    "required_value" NUMERIC(10,2),
-    "reward_type" VARCHAR(20) NOT NULL,
-    "free_product_id" INTEGER,
-    "free_product_qty" INTEGER,
-    "discount_percentage" NUMERIC(5,2),
-    "start_datetime" TIMESTAMPTZ NOT NULL,
-    "end_datetime" TIMESTAMPTZ NOT NULL,
-    "status" VARCHAR(10) NOT NULL,
-    "created_at" TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ,
-    "promotion_group" VARCHAR(100),
-    PRIMARY KEY ("offer_id")
-);
-
--- Table: ecommerce.offer_qualifying_products
-CREATE TABLE IF NOT EXISTS "ecommerce"."offer_qualifying_products" (
-    "id" UUID NOT NULL,
-    "offer_id" UUID NOT NULL,
-    "product_id" INTEGER NOT NULL,
-    PRIMARY KEY ("id"),
-    CONSTRAINT "offer_qualifying_products_offer_id_fkey" FOREIGN KEY ("offer_id") REFERENCES "ecommerce"."offers" ("offer_id") ON DELETE CASCADE
-);
-
--- Table: ecommerce.offer_redemptions
-CREATE TABLE IF NOT EXISTS "ecommerce"."offer_redemptions" (
-    "redemption_id" UUID NOT NULL,
-    "offer_id" UUID NOT NULL,
-    "customer_id" UUID,
-    "order_id" UUID,
-    "redeemed_at" TIMESTAMPTZ,
-    "benefit_applied" JSON,
-    PRIMARY KEY ("redemption_id"),
-    CONSTRAINT "offer_redemptions_offer_id_fkey" FOREIGN KEY ("offer_id") REFERENCES "ecommerce"."offers" ("offer_id") ON DELETE CASCADE,
-    CONSTRAINT "offer_redemptions_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "ecommerce"."customer_info" ("id") ON DELETE SET NULL,
-    CONSTRAINT "offer_redemptions_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "ecommerce"."orders" ("id") ON DELETE SET NULL
-);
+-- Schema already exists in Supabase. This file only inserts data.
+-- TRUNCATE first to avoid duplicates, then INSERT all rows.
+-- Safe to run multiple times.
 
 -- ============================================================================
--- SECTION 3: INSERT DATA
+-- STEP 1: CLEAR EXISTING DATA (reverse order to respect FKs)
 -- ============================================================================
 
--- Clear all existing data (reverse dependency order to respect FKs)
--- This uses CASCADE so child tables are cleared automatically
 TRUNCATE TABLE "ecommerce"."offer_redemptions", "ecommerce"."offer_qualifying_products", "ecommerce"."offers" CASCADE;
 TRUNCATE TABLE "ecommerce"."customer_info" CASCADE;
 TRUNCATE TABLE "ecommerce"."workflow_templates" CASCADE;
@@ -365,10 +28,12 @@ TRUNCATE TABLE "ecommerce"."otps" CASCADE;
 TRUNCATE TABLE "ecommerce"."rfid_scan_logs", "ecommerce"."rfid_cards" CASCADE;
 TRUNCATE TABLE "ecommerce"."users" CASCADE;
 
--- Reset products_id_seq after inserts to avoid conflicts
+-- ============================================================================
+-- STEP 2: INSERT ALL DATA
+-- ============================================================================
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.users
+-- users (6 rows)
 -- ────────────────────────────────────────────────────────────
 -- 6 row(s) in ecommerce.users
 INSERT INTO "ecommerce"."users" ("id", "name", "email", "phone", "password_hash", "email_verified", "role", "points", "subscription_tier", "subscription_expires_at", "address", "photo_url", "id_proof_type", "id_proof_number", "created_at", "updated_at") VALUES ('c0000000-0000-0000-0000-000000000001', 'Site Admin', 'admin@auraprints.com', NULL, '$2b$12$Lql1vCWG8bJ2UUgIzrZH6u.K1adpKUbWkW43EjJxTfpIofAA4VTSq', TRUE, 1, 0, 0, NULL, 'Admin HQ, Creative City', NULL, NULL, NULL, '2026-07-08T09:23:25.490459+05:30', '2026-07-08T09:23:25.490459+05:30') ON CONFLICT DO NOTHING;
@@ -379,20 +44,20 @@ INSERT INTO "ecommerce"."users" ("id", "name", "email", "phone", "password_hash"
 INSERT INTO "ecommerce"."users" ("id", "name", "email", "phone", "password_hash", "email_verified", "role", "points", "subscription_tier", "subscription_expires_at", "address", "photo_url", "id_proof_type", "id_proof_number", "created_at", "updated_at") VALUES ('db1d8d17-79e5-4c23-8c44-ba6a2dfc4da9', 'deepak S R', 'dd7183382@gmail.com', '2345654567', '$2b$12$IxH81ty5RxbjEW4pq0gDweTEpD2bfd5vUOn8uYT9XKCkDO1A2CaKa', TRUE, 2, 0, 0, NULL, NULL, NULL, NULL, NULL, '2026-07-12T04:52:07.484023+05:30', '2026-07-12T04:52:07.484023+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.rfid_cards
+-- rfid_cards (1 rows)
 -- ────────────────────────────────────────────────────────────
 -- 1 row(s) in ecommerce.rfid_cards
 INSERT INTO "ecommerce"."rfid_cards" ("id", "user_id", "rfid_uid", "is_active", "deactivated_at", "assigned_at", "assigned_by") VALUES ('078b60f3-f783-4c76-8a88-1f4aafec89fe', 'c0000000-0000-0000-0000-000000000004', '0A65E006', TRUE, NULL, '2026-07-11T07:52:30.881700+05:30', NULL) ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.otps
+-- otps (2 rows)
 -- ────────────────────────────────────────────────────────────
 -- 2 row(s) in ecommerce.otps
 INSERT INTO "ecommerce"."otps" ("id", "email", "otp_code", "expires_at", "created_at", "last_sent_at", "attempts", "verified", "resend_count") VALUES ('e635b392-96ca-4e0f-8613-7f0c729cac16', 'customer@auraprints.com', 'a8c9e5b2f1d3a4b6c7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0', '2026-07-08T09:33:25.490459+05:30', '2026-07-08T09:23:25.490459+05:30', '2026-07-08T09:23:25.490459+05:30', 0, FALSE, 1) ON CONFLICT DO NOTHING;
 INSERT INTO "ecommerce"."otps" ("id", "email", "otp_code", "expires_at", "created_at", "last_sent_at", "attempts", "verified", "resend_count") VALUES ('2494a8f5-d0b9-45e0-850f-44ca3cf5e7e6', 'rameshthilagam377@gmail.com', '6be32e78ed9cc6670e5c50da91dda8428710a48cb62bf9054050522167548178', '2026-07-15T08:44:39.397554+05:30', '2026-07-15T08:34:05.111001+05:30', '2026-07-15T08:34:39.399599+05:30', 0, FALSE, 2) ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.products
+-- products (122 rows)
 -- ────────────────────────────────────────────────────────────
 -- 122 row(s) in ecommerce.products
 INSERT INTO "ecommerce"."products" ("id", "name", "description", "price", "category", "badge", "image_url", "out_of_stock", "mrp", "rating", "review_count", "images", "features", "specs", "reviews", "style_id", "hex", "created_at", "available_count", "sku") VALUES (2, 'Charcoal Walnut Frame', 'Deep charcoal-stained premium walnut wood. Offers an elegant, modern dark accent that fits high-contrast photography, sketch designs, and monochrome art prints.', 1650.00, 'Frames', NULL, '/charcoal_walnut_frame.png', FALSE, 2200.00, 4.90, 86, '["/charcoal_walnut_frame.png", "/gallery_black_frame.png"]'::jsonb, '["Stained dark walnut borders with subtle charcoal gray undertones.", "Sleek and heavy profile, providing a grand museum presence for your home.", "Can be displayed vertically or horizontally.", "Easy-to-open flexible turn tabs on the back make swapping prints a breeze."]'::jsonb, '{"Finish": "Satin Wax Matte", "Origin": "Made in India", "Mount Type": "Wall Mount Only", "Profile Width": "0.85 inches", "Frame Material": "Stained Walnut Wood"}'::jsonb, '[{"date": "08 June 2026", "text": "Extremely rich dark color. Fits my prints perfectly! Heavy and premium feel.", "author": "Anya V.", "rating": 5}]'::jsonb, 'black', '#2e2528', '2026-07-08T09:23:25.490459+05:30', 100, NULL) ON CONFLICT DO NOTHING;
@@ -519,7 +184,7 @@ INSERT INTO "ecommerce"."products" ("id", "name", "description", "price", "categ
 INSERT INTO "ecommerce"."products" ("id", "name", "description", "price", "category", "badge", "image_url", "out_of_stock", "mrp", "rating", "review_count", "images", "features", "specs", "reviews", "style_id", "hex", "created_at", "available_count", "sku") VALUES (50, 'Borderless Mini Polaroid', 'Borderless mini polaroid', 5.00, 'polaroid', NULL, NULL, FALSE, NULL, 4.50, 0, NULL, NULL, NULL, NULL, NULL, NULL, '2026-07-16T07:43:11.125399+05:30', 100, 'APD-M-bl') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.orders
+-- orders (17 rows)
 -- ────────────────────────────────────────────────────────────
 -- 17 row(s) in ecommerce.orders
 INSERT INTO "ecommerce"."orders" ("id", "user_id", "total_amount", "status", "delivery_type", "delivery_cost", "payment_method", "payment_intent_id", "payment_screenshot_url", "full_name", "street_address", "city", "pin_code", "phone_number", "created_at", "updated_at", "pipeline_steps", "stock_deducted") VALUES ('de305d54-75b4-431b-adb2-eb6b9e546014', 'c0000000-0000-0000-0000-000000000004', 3500.00, 4, 'In-store Pickup', 0.00, NULL, NULL, 'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg', 'Jane Customer', '123 Artisan Way, Apt 4B', 'Mumbai', '400001', '+91 98765 43210', '2026-06-19T09:23:25.490459+05:30', '2026-07-08T09:23:25.490459+05:30', NULL, FALSE) ON CONFLICT DO NOTHING;
@@ -541,7 +206,7 @@ INSERT INTO "ecommerce"."orders" ("id", "user_id", "total_amount", "status", "de
 INSERT INTO "ecommerce"."orders" ("id", "user_id", "total_amount", "status", "delivery_type", "delivery_cost", "payment_method", "payment_intent_id", "payment_screenshot_url", "full_name", "street_address", "city", "pin_code", "phone_number", "created_at", "updated_at", "pipeline_steps", "stock_deducted") VALUES ('1a8a0098-7533-4d31-9bf1-ccda60ca0fe3', 'c0000000-0000-0000-0000-000000000003', 295.00, 2, 'Counter Pickup', 0.00, NULL, NULL, NULL, 'deepak', 'Store Billing Counter', 'Mumbai', '400001', '9940077848', '2026-07-16T03:13:19.712548+05:30', '2026-07-16T08:43:19.905823+05:30', NULL, FALSE) ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.order_items
+-- order_items (20 rows)
 -- ────────────────────────────────────────────────────────────
 -- 20 row(s) in ecommerce.order_items
 INSERT INTO "ecommerce"."order_items" ("id", "order_id", "product_id", "product_name", "subtitle", "price", "quantity", "uploaded_file_url") VALUES ('de305d54-75b4-431b-adb2-eb6b9e546023', 'de305d54-75b4-431b-adb2-eb6b9e546013', NULL, 'Seasonal Wood Frame', 'Premium Hand-crafted Wood Frame', 1250.00, 1, NULL) ON CONFLICT DO NOTHING;
@@ -566,7 +231,7 @@ INSERT INTO "ecommerce"."order_items" ("id", "order_id", "product_id", "product_
 INSERT INTO "ecommerce"."order_items" ("id", "order_id", "product_id", "product_name", "subtitle", "price", "quantity", "uploaded_file_url") VALUES ('df4d5d0f-0a6d-4351-bc1c-5d9e863c8ceb', '1a8a0098-7533-4d31-9bf1-ccda60ca0fe3', NULL, 'Photo Collage Frame', 'AFRM-PHOTO-COLLAGE', 250.00, 1, NULL) ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.chat_messages
+-- chat_messages (12 rows)
 -- ────────────────────────────────────────────────────────────
 -- 12 row(s) in ecommerce.chat_messages
 INSERT INTO "ecommerce"."chat_messages" ("id", "order_id", "sender_user_id", "sender_role", "text", "image_url", "created_at", "read_at") VALUES ('62ed8870-74da-498c-9807-2d92491f732d', '15526d5d-4bbc-4c1d-b5f8-63713fac6358', 'c0000000-0000-0000-0000-000000000003', 3, 'Hi there! Thank you for ordering with Aura Prints. We have received your screenshot and are verifying your payment of ₹13,000.00. Feel free to drop any customization notes or reference photos below.', NULL, '2026-07-12T04:16:20.277691+05:30', NULL) ON CONFLICT DO NOTHING;
@@ -583,7 +248,7 @@ INSERT INTO "ecommerce"."chat_messages" ("id", "order_id", "sender_user_id", "se
 INSERT INTO "ecommerce"."chat_messages" ("id", "order_id", "sender_user_id", "sender_role", "text", "image_url", "created_at", "read_at") VALUES ('ae486541-e6eb-4fa3-961c-10a10dd4b0ba', '1a8a0098-7533-4d31-9bf1-ccda60ca0fe3', 'c0000000-0000-0000-0000-000000000003', 3, 'Hi there! Thank you for ordering with Aura Prints. We have received your screenshot and are verifying your payment of ₹295.00. Feel free to drop any customization notes or reference photos below.', NULL, '2026-07-16T03:13:19.797113+05:30', NULL) ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.audit_logs
+-- audit_logs (29 rows)
 -- ────────────────────────────────────────────────────────────
 -- 29 row(s) in ecommerce.audit_logs
 INSERT INTO "ecommerce"."audit_logs" ("id", "user_id", "action", "details", "created_at") VALUES ('c213e736-91bb-488a-889e-aafd60bd1c6c', NULL, 'ORDER_STATUS_CHANGE', '{"order_id": "67ed959a-3557-4bc2-a31e-3c75593290bf", "new_status": 2, "old_status": 1}'::jsonb, '2026-07-11T07:57:49.138419+05:30') ON CONFLICT DO NOTHING;
@@ -617,7 +282,7 @@ INSERT INTO "ecommerce"."audit_logs" ("id", "user_id", "action", "details", "cre
 INSERT INTO "ecommerce"."audit_logs" ("id", "user_id", "action", "details", "created_at") VALUES ('b6fc2679-9b99-4a2f-853f-4010578ed88a', NULL, 'ORDER_STATUS_CHANGE', '{"order_id": "101f641c-841c-4005-a844-f02e9f6a600d", "new_status": 2, "old_status": 1}'::jsonb, '2026-07-16T09:39:52.287366+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.media_files
+-- media_files (11 rows)
 -- ────────────────────────────────────────────────────────────
 -- 11 row(s) in ecommerce.media_files
 INSERT INTO "ecommerce"."media_files" ("id", "order_id", "object_key", "mime_type", "size", "is_public", "category", "delete_after", "created_at") VALUES ('6ed62c21-8ef1-47ba-9c2c-856d0fb5415a', NULL, 'receipts/188296d4-bb6f-4d99-992c-2b51fcde3691-WhatsApp Image 2026-06-08 at 11.24.16.jpeg', 'image/jpeg', 49308, FALSE, 'receipts', NULL, '2026-07-11T02:25:39.288965+05:30') ON CONFLICT DO NOTHING;
@@ -633,7 +298,7 @@ INSERT INTO "ecommerce"."media_files" ("id", "order_id", "object_key", "mime_typ
 INSERT INTO "ecommerce"."media_files" ("id", "order_id", "object_key", "mime_type", "size", "is_public", "category", "delete_after", "created_at") VALUES ('50f1124f-bb48-493f-8191-164b8a052b4d', NULL, 'receipts/2488c052-6a22-4e53-849c-89d2713cd9fc-WhatsApp Image 2026-06-07 at 20.11.38.jpeg', 'image/jpeg', 71187, FALSE, 'receipts', NULL, '2026-07-12T06:38:02.191433+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.carts
+-- carts (6 rows)
 -- ────────────────────────────────────────────────────────────
 -- 6 row(s) in ecommerce.carts
 INSERT INTO "ecommerce"."carts" ("id", "user_id", "created_at", "updated_at") VALUES ('db25af84-5923-4faa-833e-d3233ab2e619', 'c0000000-0000-0000-0000-000000000001', '2026-07-08T09:23:25.490459+05:30', '2026-07-08T09:23:25.490459+05:30') ON CONFLICT DO NOTHING;
@@ -644,13 +309,13 @@ INSERT INTO "ecommerce"."carts" ("id", "user_id", "created_at", "updated_at") VA
 INSERT INTO "ecommerce"."carts" ("id", "user_id", "created_at", "updated_at") VALUES ('cad09eaa-a4b9-4964-aabf-b7107cc7c0e5', 'db1d8d17-79e5-4c23-8c44-ba6a2dfc4da9', '2026-07-12T10:22:06.978102+05:30', '2026-07-12T10:22:06.978102+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.workflow_templates
+-- workflow_templates (1 rows)
 -- ────────────────────────────────────────────────────────────
 -- 1 row(s) in ecommerce.workflow_templates
 INSERT INTO "ecommerce"."workflow_templates" ("id", "name", "created_by", "steps", "is_active", "created_at", "updated_at") VALUES ('fda49143-595c-43b7-8058-15ba8cb86695', 'sadwsvdv', 'c0000000-0000-0000-0000-000000000003', '[{"id": 1, "name": "sdfsddfs", "desc": "No description provided", "assignee": "Deva", "status": "Pending"}]'::jsonb, TRUE, '2026-07-12T10:57:50.410331+05:30', '2026-07-12T10:57:50.410331+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.customer_info
+-- customer_info (10 rows)
 -- ────────────────────────────────────────────────────────────
 -- 10 row(s) in ecommerce.customer_info
 INSERT INTO "ecommerce"."customer_info" ("id", "name", "phone", "email", "address", "is_sub_user", "created_at", "updated_at") VALUES ('a62223ca-1a8e-438b-b5e9-9579abae2577', 'Jane Doe', '9876543210', 'customer@auraprints.com', '123 Artisan Way, Apt 4B, Mumbai, MH - 400001', TRUE, '2026-07-15T08:38:36.306092+05:30', '2026-07-15T08:38:36.306092+05:30') ON CONFLICT DO NOTHING;
@@ -665,7 +330,7 @@ INSERT INTO "ecommerce"."customer_info" ("id", "name", "phone", "email", "addres
 INSERT INTO "ecommerce"."customer_info" ("id", "name", "phone", "email", "address", "is_sub_user", "created_at", "updated_at") VALUES ('9657e8df-88cb-41ad-83d0-e333c5848ed3', 'mehull', '1122334455', NULL, NULL, FALSE, '2026-07-15T08:51:55.775407+05:30', '2026-07-15T08:51:55.775407+05:30') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.offers
+-- offers (29 rows)
 -- ────────────────────────────────────────────────────────────
 -- 29 row(s) in ecommerce.offers
 INSERT INTO "ecommerce"."offers" ("offer_id", "offer_name", "criteria_type", "product_scope", "product_id", "required_count", "required_value", "reward_type", "free_product_id", "free_product_qty", "discount_percentage", "start_datetime", "end_datetime", "status", "created_at", "updated_at", "promotion_group") VALUES ('7a30340a-4ca9-4703-930d-cc08be51d109', 'Poster Combo — Buy 5 Get 1 Free', 'PURCHASE_COUNT', 'MULTIPLE_PRODUCT', NULL, 5, NULL, 'FREE_PRODUCT', 38, 1, NULL, '2026-07-16T00:00:00+05:30', '2026-07-19T23:59:59+05:30', 'ACTIVE', '2026-07-16T07:44:23.932637+05:30', '2026-07-16T07:44:23.932637+05:30', 'POSTER_COMBO') ON CONFLICT DO NOTHING;
@@ -699,7 +364,7 @@ INSERT INTO "ecommerce"."offers" ("offer_id", "offer_name", "criteria_type", "pr
 INSERT INTO "ecommerce"."offers" ("offer_id", "offer_name", "criteria_type", "product_scope", "product_id", "required_count", "required_value", "reward_type", "free_product_id", "free_product_qty", "discount_percentage", "start_datetime", "end_datetime", "status", "created_at", "updated_at", "promotion_group") VALUES ('31e31907-fc1b-4365-ad97-8b00feee21a9', 'Grand Opening — Spend ₹3499 Get 12x8 Frame Free', 'PURCHASE_VALUE', 'ALL_PRODUCTS', NULL, NULL, 3499.00, 'FREE_PRODUCT', 105, 1, NULL, '2026-07-16T00:00:00+05:30', '2026-07-31T23:59:59+05:30', 'ACTIVE', '2026-07-16T07:44:23.932637+05:30', '2026-07-16T07:44:23.932637+05:30', 'GRAND_OPENING') ON CONFLICT DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- Data for table: ecommerce.offer_qualifying_products
+-- offer_qualifying_products (172 rows)
 -- ────────────────────────────────────────────────────────────
 -- 172 row(s) in ecommerce.offer_qualifying_products
 INSERT INTO "ecommerce"."offer_qualifying_products" ("id", "offer_id", "product_id") VALUES ('59903540-8a1f-4482-aee1-8975da2642bd', 'd04dc93b-c21a-4497-8665-7e93ab72875c', 16) ON CONFLICT DO NOTHING;
@@ -875,95 +540,13 @@ INSERT INTO "ecommerce"."offer_qualifying_products" ("id", "offer_id", "product_
 INSERT INTO "ecommerce"."offer_qualifying_products" ("id", "offer_id", "product_id") VALUES ('aee77e91-5ed3-475a-8b08-6e3a45e2276a', 'cfb64206-9d67-4b81-8d9b-4021f85ac440', 58) ON CONFLICT DO NOTHING;
 INSERT INTO "ecommerce"."offer_qualifying_products" ("id", "offer_id", "product_id") VALUES ('449d20f6-6096-46d8-99fe-4ff787c1eb3c', 'cfb64206-9d67-4b81-8d9b-4021f85ac440', 56) ON CONFLICT DO NOTHING;
 
--- Reset auto-increment sequence for ecommerce.products
-SELECT setval('ecommerce.products_id_seq', (SELECT MAX(id) FROM ecommerce.products));
-
 -- ============================================================================
--- SECTION 4: CREATE INDEXES
+-- STEP 3: RESET AUTO-INCREMENT SEQUENCE
 -- ============================================================================
 
--- Indexes for: ecommerce.users
-CREATE INDEX idx_users_email ON ecommerce.users USING btree (email);
-CREATE INDEX idx_users_role ON ecommerce.users USING btree (role);
-CREATE UNIQUE INDEX users_email_key ON ecommerce.users USING btree (email);
-
--- Indexes for: ecommerce.rfid_cards
-CREATE UNIQUE INDEX idx_rfid_cards_active_uid ON ecommerce.rfid_cards USING btree (rfid_uid) WHERE (is_active = true);
-CREATE UNIQUE INDEX idx_rfid_cards_active_user ON ecommerce.rfid_cards USING btree (user_id) WHERE (is_active = true);
-CREATE INDEX idx_rfid_cards_rfid_uid ON ecommerce.rfid_cards USING btree (rfid_uid);
-CREATE INDEX idx_rfid_cards_user_id ON ecommerce.rfid_cards USING btree (user_id);
-
--- Indexes for: ecommerce.rfid_scan_logs
-CREATE INDEX idx_rfid_scan_logs_time ON ecommerce.rfid_scan_logs USING btree (scan_time);
-CREATE INDEX idx_rfid_scan_logs_uid ON ecommerce.rfid_scan_logs USING btree (rfid_uid);
-CREATE INDEX idx_rfid_scan_logs_user_id ON ecommerce.rfid_scan_logs USING btree (user_id);
-
--- Indexes for: ecommerce.otps
-CREATE INDEX idx_otps_email ON ecommerce.otps USING btree (email);
-CREATE INDEX idx_otps_expires_at ON ecommerce.otps USING btree (expires_at);
-
--- Indexes for: ecommerce.products
-CREATE INDEX idx_products_category ON ecommerce.products USING btree (category);
-CREATE INDEX idx_products_name_trgm ON ecommerce.products USING gin (name gin_trgm_ops);
-CREATE INDEX idx_products_price ON ecommerce.products USING btree (price);
-CREATE UNIQUE INDEX idx_products_sku ON ecommerce.products USING btree (sku) WHERE (sku IS NOT NULL);
-
--- Indexes for: ecommerce.orders
-CREATE INDEX idx_orders_status ON ecommerce.orders USING btree (status);
-CREATE INDEX idx_orders_user_id ON ecommerce.orders USING btree (user_id);
-
--- Indexes for: ecommerce.order_items
-CREATE INDEX idx_order_items_order_id ON ecommerce.order_items USING btree (order_id);
-
--- Indexes for: ecommerce.chat_messages
-CREATE INDEX idx_chat_messages_created_at ON ecommerce.chat_messages USING btree (created_at);
-CREATE INDEX idx_chat_messages_order_id ON ecommerce.chat_messages USING btree (order_id);
-
--- Indexes for: ecommerce.audit_logs
-CREATE INDEX idx_audit_created_at ON ecommerce.audit_logs USING btree (created_at);
-CREATE INDEX idx_audit_user_id ON ecommerce.audit_logs USING btree (user_id);
-
--- Indexes for: ecommerce.media_files
-CREATE INDEX idx_media_files_category ON ecommerce.media_files USING btree (category);
-CREATE INDEX idx_media_files_delete_after ON ecommerce.media_files USING btree (delete_after);
-CREATE INDEX idx_media_files_object_key ON ecommerce.media_files USING btree (object_key);
-CREATE INDEX idx_media_files_order_id ON ecommerce.media_files USING btree (order_id);
-CREATE UNIQUE INDEX media_files_object_key_key ON ecommerce.media_files USING btree (object_key);
-
--- Indexes for: ecommerce.carts
-CREATE UNIQUE INDEX carts_user_id_key ON ecommerce.carts USING btree (user_id);
-
--- Indexes for: ecommerce.cart_items
-CREATE INDEX idx_cart_items_cart_id ON ecommerce.cart_items USING btree (cart_id);
-CREATE INDEX idx_cart_items_product_id ON ecommerce.cart_items USING btree (product_id);
-
--- Indexes for: ecommerce.payments
-CREATE INDEX idx_payments_order_id ON ecommerce.payments USING btree (order_id);
-CREATE INDEX idx_payments_razorpay_order_id ON ecommerce.payments USING btree (razorpay_order_id);
-CREATE INDEX idx_payments_status ON ecommerce.payments USING btree (status);
-
--- Indexes for: ecommerce.webhook_events
-CREATE INDEX idx_webhook_event_id ON ecommerce.webhook_events USING btree (event_id);
-CREATE INDEX idx_webhook_processed ON ecommerce.webhook_events USING btree (processed);
-CREATE UNIQUE INDEX webhook_events_event_id_key ON ecommerce.webhook_events USING btree (event_id);
-
--- Indexes for: ecommerce.workflow_templates
-CREATE INDEX ix_ecommerce_workflow_templates_created_by ON ecommerce.workflow_templates USING btree (created_by);
-
--- Indexes for: ecommerce.customer_info
-CREATE INDEX ix_ecommerce_customer_info_email ON ecommerce.customer_info USING btree (email);
-CREATE INDEX ix_ecommerce_customer_info_phone ON ecommerce.customer_info USING btree (phone);
-
--- Indexes for: ecommerce.offers
-CREATE INDEX idx_offers_promo_group ON ecommerce.offers USING btree (promotion_group) WHERE (promotion_group IS NOT NULL);
-
--- Indexes for: ecommerce.offer_qualifying_products
-CREATE INDEX ix_ecommerce_offer_qualifying_products_offer_id ON ecommerce.offer_qualifying_products USING btree (offer_id);
-
--- Indexes for: ecommerce.offer_redemptions
-CREATE INDEX ix_ecommerce_offer_redemptions_offer_id ON ecommerce.offer_redemptions USING btree (offer_id);
+SELECT setval('ecommerce.products_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ecommerce.products));
+SELECT setval('ecommerce.upi_details_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ecommerce.upi_details));
 
 -- ============================================================================
--- END OF DUMP
--- Total rows inserted: 438
+-- DONE — 438 rows inserted
 -- ============================================================================
