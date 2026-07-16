@@ -215,7 +215,7 @@ async def get_rfid(
     """
     Get active RFID card details for a user.
     """
-    if current_user.role not in [1, 2] and str(current_user.id) != user_id:
+    if current_user.role not in [1, 2, 3] and str(current_user.id) != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     q = select(RFIDCard).where(

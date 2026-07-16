@@ -417,3 +417,194 @@ class WorkflowTemplateResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# ── Customer Info ─────────────────────────────────────────────────────────────
+
+class CustomerInfoCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    phone: str = Field(..., min_length=1, max_length=50)
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
+    is_sub_user: bool = False
+
+class CustomerInfoUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, min_length=1, max_length=50)
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
+    is_sub_user: Optional[bool] = None
+
+class CustomerInfoResponse(BaseModel):
+    id: UUID
+    name: str
+    phone: str
+    email: Optional[str] = None
+    address: Optional[str] = None
+    is_sub_user: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ── Offer / Discount Management ────────────────────────────────────────────────
+
+class OfferCreate(BaseModel):
+    offer_name: str = Field(..., min_length=1, max_length=100)
+    criteria_type: str = Field(..., pattern="^(PURCHASE_COUNT|PURCHASE_VALUE)$")
+    product_scope: str = Field(..., pattern="^(SINGLE_PRODUCT|MULTIPLE_PRODUCT|ALL_PRODUCTS)$")
+    product_id: Optional[int] = None
+    qualifying_product_ids: Optional[List[int]] = None
+    required_count: Optional[int] = None
+    required_value: Optional[float] = None
+    reward_type: str = Field(..., pattern="^(FREE_PRODUCT|PRICE_DISCOUNT)$")
+    free_product_id: Optional[int] = None
+    free_product_qty: Optional[int] = Field(1, ge=1)
+    discount_percentage: Optional[float] = Field(None, ge=0.01, le=100)
+    start_datetime: datetime
+    end_datetime: datetime
+    status: str = Field("ACTIVE", pattern="^(ACTIVE|INACTIVE)$")
+
+class OfferUpdate(BaseModel):
+    offer_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    criteria_type: Optional[str] = Field(None, pattern="^(PURCHASE_COUNT|PURCHASE_VALUE)$")
+    product_scope: Optional[str] = Field(None, pattern="^(SINGLE_PRODUCT|MULTIPLE_PRODUCT|ALL_PRODUCTS)$")
+    product_id: Optional[int] = None
+    qualifying_product_ids: Optional[List[int]] = None
+    required_count: Optional[int] = None
+    required_value: Optional[float] = None
+    reward_type: Optional[str] = Field(None, pattern="^(FREE_PRODUCT|PRICE_DISCOUNT)$")
+    free_product_id: Optional[int] = None
+    free_product_qty: Optional[int] = Field(None, ge=1)
+    discount_percentage: Optional[float] = Field(None, ge=0.01, le=100)
+    start_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
+    status: Optional[str] = Field(None, pattern="^(ACTIVE|INACTIVE)$")
+
+class OfferResponse(BaseModel):
+    offer_id: UUID
+    offer_name: str
+    criteria_type: str
+    product_scope: str
+    product_id: Optional[int] = None
+    qualifying_product_ids: List[int] = []
+    required_count: Optional[int] = None
+    required_value: Optional[float] = None
+    reward_type: str
+    free_product_id: Optional[int] = None
+    free_product_qty: Optional[int] = None
+    discount_percentage: Optional[float] = None
+    start_datetime: datetime
+    end_datetime: datetime
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class OfferRedemptionResponse(BaseModel):
+    redemption_id: UUID
+    offer_id: UUID
+    customer_id: Optional[UUID] = None
+    order_id: Optional[UUID] = None
+    redeemed_at: datetime
+    benefit_applied: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ── Offer evaluation & redemption ─────────────────────────────────────────────
+
+class EvaluateCartItem(BaseModel):
+    product_id: int
+    qty: int = Field(..., ge=1)
+    price: float = Field(..., ge=0)
+
+
+class OfferEvaluateRequest(BaseModel):
+    customer_id: Optional[UUID] = None
+    cart: List[EvaluateCartItem] = Field(default_factory=list)
+    # When True, only the current cart counts toward the threshold.
+    # When False, lifetime purchase history (orders) is also summed.
+    include_history: bool = Field(False)
+
+
+class OfferBenefit(BaseModel):
+    reward_type: str
+    free_product_id: Optional[int] = None
+    free_product_qty: Optional[int] = None
+    discount_percentage: Optional[float] = None
+    discount_amount: Optional[float] = None
+    applicable_cart_total: Optional[float] = None
+
+
+class OfferEvaluateResult(BaseModel):
+    offer_id: UUID
+    offer_name: str
+    criteria_type: str
+    product_scope: str
+    cumulative_count: Optional[int] = None
+    cumulative_value: Optional[float] = None
+    required_count: Optional[int] = None
+    required_value: Optional[float] = None
+    qualified: bool
+    benefit: OfferBenefit
+
+
+class OfferEvaluateResponse(BaseModel):
+    customer_id: Optional[UUID] = None
+    qualified_offers: List[OfferEvaluateResult]
+    evaluated_at: datetime
+
+
+class OfferRedeemRequest(BaseModel):
+    offer_id: UUID
+    customer_id: Optional[UUID] = None
+    order_id: Optional[UUID] = None
+    cart: List[EvaluateCartItem] = Field(default_factory=list)
+    include_history: bool = Field(False)
+
+
+class OfferRedeemResponse(BaseModel):
+    redemption_id: UUID
+    offer_id: UUID
+    customer_id: Optional[UUID] = None
+    order_id: Optional[UUID] = None
+    redeemed_at: datetime
+    benefit_applied: Dict[str, Any]
+
+
+class OfferConflictCheckRequest(BaseModel):
+    product_id: Optional[int] = None
+    qualifying_product_ids: Optional[List[int]] = None
+    product_scope: str = Field(..., pattern="^(SINGLE_PRODUCT|MULTIPLE_PRODUCT|ALL_PRODUCTS)$")
+    start_datetime: datetime
+    end_datetime: datetime
+    exclude_offer_id: Optional[UUID] = None
+
+
+class OfferConflictInfo(BaseModel):
+    offer_id: UUID
+    offer_name: str
+    overlapping_products: List[int]
+
+
+class OfferConflictResponse(BaseModel):
+    has_conflict: bool
+    conflicts: List[OfferConflictInfo]
+
+
+class OfferStatusUpdate(BaseModel):
+    status: str = Field(..., pattern="^(ACTIVE|INACTIVE)$")
+
+
+# ── Consistent error envelope ─────────────────────────────────────────────────
+
+class APIError(BaseModel):
+    error: str
+    detail: str
+    field: Optional[str] = None
+

@@ -13,9 +13,9 @@ from sqlalchemy.future import select
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.database import engine, SessionLocal
-from app.models import Base, User, Product, RFIDCard
+from app.models import Base, User, Product, RFIDCard, CustomerInfo, Offer, OfferQualifyingProduct, OfferRedemption
 
-from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config, workflows
+from app.routers import auth, products, orders, chat, storage, rfid, cart, payments, config, workflows, customers, offers
 
 
 # ─── Logging Setup ─────────────────────────────────────────────────────────────
@@ -80,7 +80,11 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
             req_body_pretty = f"<Payload omitted: content_type={content_type}, size={content_length}>"
 
         # Capture response body for product endpoints
-        response: Response = await call_next(request)
+        try:
+            response: Response = await call_next(request)
+        except Exception as exc:
+            _log(f"[{ts}] {request.method} {request.url.path} -> 500 (middleware exception: {exc})")
+            raise
         duration_ms = (time.perf_counter() - start) * 1000
 
         # Build log entry
@@ -141,7 +145,8 @@ app.add_middleware(APILoggingMiddleware)
 CORS_ORIGINS = [
     "https://auraprintsandgifts.in",
     "https://www.auraprintsandgifts.in",
-    "http://localhost:5173",          # local Vite dev
+    "http://localhost:5173",          # local Vite dev (aura-prints)
+    "http://localhost:5174",          # local Vite dev (workflow-app)
     "capacitor://localhost",         # iOS mobile app
     "http://localhost",                # Android mobile app
 ]
@@ -154,6 +159,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Catch-all exception handler so unhandled 500s are converted to a JSON
+# response INSIDE the middleware stack (by ExceptionMiddleware, which sits
+# below CORSMiddleware).  Without this, unhandled exceptions bubble up to
+# ServerErrorMiddleware (outermost) which returns a bare 500 with NO CORS
+# headers, causing "No Access-Control-Allow-Origin" errors in the browser.
+#
+# We also manually inject CORS headers here because BaseHTTPMiddleware
+# (APILoggingMiddleware, registered before CORSMiddleware) can interfere
+# with the response flow, preventing CORSMiddleware from adding headers
+# to error responses.
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception on {request.method} {request.url.path}: {exc}")
+    origin = request.headers.get("Origin")
+    headers = {}
+    if origin and origin in CORS_ORIGINS:
+        headers = {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "error": type(exc).__name__},
+        headers=headers,
+    )
+
 # Register routers
 app.include_router(auth.router)
 app.include_router(products.router)
@@ -165,6 +200,8 @@ app.include_router(cart.router)     # Register cart router
 app.include_router(payments.router)   # Register payments router
 app.include_router(config.router)     # Register site config router
 app.include_router(workflows.router)  # Register workflow templates router
+app.include_router(customers.router)  # Register customer info router
+app.include_router(offers.router)      # Register offers/discounts router
 
 # Create uploads directory if not exists
 os.makedirs("uploads", exist_ok=True)
@@ -270,6 +307,72 @@ async def seed_database(db):
             db.add(jane_card)
             await db.commit()
             print("[Seed] RFID card 0A65E006 successfully seeded for Jane Doe.")
+
+
+    # Seed Customer Info
+    ci_result = await db.execute(select(CustomerInfo).limit(1))
+    if not ci_result.scalars().first():
+        default_customers = [
+            CustomerInfo(
+                name="Jane Doe",
+                phone="9876543210",
+                email="customer@auraprints.com",
+                address="123 Artisan Way, Apt 4B, Mumbai, MH - 400001",
+                is_sub_user=True
+            ),
+            CustomerInfo(
+                name="Alex Patel",
+                phone="9123456789",
+                email="student@auraprints.com",
+                address="Hostel 4, IIT Bombay, Powai, Mumbai - 400076",
+                is_sub_user=False
+            ),
+            CustomerInfo(
+                name="Rajesh Sharma",
+                phone="9812345678",
+                email=None,
+                address=None,
+                is_sub_user=False
+            ),
+            CustomerInfo(
+                name="Priya Patel",
+                phone="95551234567",
+                email="priya.patel@gmail.com",
+                address="45 Marine Drive, Mumbai - 400020",
+                is_sub_user=True
+            ),
+            CustomerInfo(
+                name="Amit Verma",
+                phone="9988776655",
+                email=None,
+                address=None,
+                is_sub_user=False
+            ),
+            CustomerInfo(
+                name="Sneha Reddy",
+                phone="9001122334",
+                email="sneha.reddy@outlook.com",
+                address="12 Jubilee Hills, Hyderabad - 500033",
+                is_sub_user=False
+            ),
+            CustomerInfo(
+                name="Karthik Iyer",
+                phone="9445566778",
+                email=None,
+                address=None,
+                is_sub_user=True
+            ),
+            CustomerInfo(
+                name="Neha Gupta",
+                phone="9708564412",
+                email="neha.gupta@yahoo.com",
+                address="78 CG Road, Ahmedabad - 380009",
+                is_sub_user=False
+            ),
+        ]
+        db.add_all(default_customers)
+        await db.commit()
+        print("[Seed] Customer info seed data successfully populated.")
 
 
     # Seed Products
@@ -808,6 +911,53 @@ async def seed_database(db):
         await db.commit()
         print("[Seed] Products seed data successfully populated.")
 
+
+    # Seed Offers (after products so product_id references are valid)
+    offer_result = await db.execute(select(Offer).limit(1))
+    if not offer_result.scalars().first():
+        from datetime import timedelta
+        now_dt = datetime.now(timezone.utc)
+        default_offers = [
+            Offer(
+                offer_name="Buy 10 Get 1 Free — Wax Seal Kit",
+                criteria_type="PURCHASE_COUNT",
+                product_scope="SINGLE_PRODUCT",
+                product_id=1,
+                required_count=10,
+                required_value=None,
+                reward_type="FREE_PRODUCT",
+                free_product_id=1,
+                free_product_qty=1,
+                discount_percentage=None,
+                start_datetime=now_dt,
+                end_datetime=now_dt + timedelta(days=30),
+                status="ACTIVE",
+            ),
+            Offer(
+                offer_name="Spend ₹500 Get 15% Off — Stationery Bundle",
+                criteria_type="PURCHASE_VALUE",
+                product_scope="MULTIPLE_PRODUCT",
+                product_id=None,
+                required_count=None,
+                required_value=500,
+                reward_type="PRICE_DISCOUNT",
+                free_product_id=None,
+                free_product_qty=None,
+                discount_percentage=15,
+                start_datetime=now_dt,
+                end_datetime=now_dt + timedelta(days=45),
+                status="ACTIVE",
+            ),
+        ]
+        db.add_all(default_offers)
+        await db.flush()
+        multi_offer = default_offers[1]
+        for pid in [1, 2, 3]:
+            db.add(OfferQualifyingProduct(offer_id=multi_offer.offer_id, product_id=pid))
+        await db.commit()
+        print("[Seed] Offers seed data successfully populated.")
+
+
     # Seed Config (Banners)
     config_result = await db.execute(text("SELECT key FROM ecommerce.site_config WHERE key = 'banners'"))
     if not config_result.first():
@@ -884,6 +1034,46 @@ async def on_startup():
                         value JSONB NOT NULL DEFAULT '{}',
                         updated_by UUID REFERENCES ecommerce.users(id) ON DELETE SET NULL,
                         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    );
+                """))
+                # Create offers table if not exists (ensures schema matches even if Base.metadata.create_all skipped it)
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS ecommerce.offers (
+                        offer_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        offer_name VARCHAR(100) NOT NULL,
+                        criteria_type VARCHAR(20) NOT NULL,
+                        product_scope VARCHAR(20) NOT NULL,
+                        product_id INTEGER,
+                        required_count INTEGER,
+                        required_value DECIMAL(10,2),
+                        reward_type VARCHAR(20) NOT NULL,
+                        free_product_id INTEGER,
+                        free_product_qty INTEGER DEFAULT 1,
+                        discount_percentage DECIMAL(5,2),
+                        start_datetime TIMESTAMPTZ NOT NULL,
+                        end_datetime TIMESTAMPTZ NOT NULL,
+                        status VARCHAR(10) NOT NULL DEFAULT 'ACTIVE',
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    );
+                """))
+                # Drop shop_id column if it exists from a previous schema version
+                await conn.execute(text("ALTER TABLE ecommerce.offers DROP COLUMN IF EXISTS shop_id;"))
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS ecommerce.offer_qualifying_products (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        offer_id UUID NOT NULL REFERENCES ecommerce.offers(offer_id) ON DELETE CASCADE,
+                        product_id INTEGER NOT NULL
+                    );
+                """))
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS ecommerce.offer_redemptions (
+                        redemption_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        offer_id UUID NOT NULL REFERENCES ecommerce.offers(offer_id) ON DELETE CASCADE,
+                        customer_id UUID REFERENCES ecommerce.customer_info(id) ON DELETE SET NULL,
+                        order_id UUID REFERENCES ecommerce.orders(id) ON DELETE SET NULL,
+                        redeemed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        benefit_applied JSONB
                     );
                 """))
             else:

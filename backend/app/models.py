@@ -289,3 +289,63 @@ class WorkflowTemplate(Base):
 
     creator = relationship("User", backref="workflow_templates")
 
+
+class CustomerInfo(Base):
+    __tablename__ = "customer_info"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False)
+    phone = Column(String(50), nullable=False, index=True)
+    email = Column(String(255), nullable=True, index=True)
+    address = Column(Text, nullable=True)
+    is_sub_user = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Offer(Base):
+    __tablename__ = "offers"
+    __table_args__ = {"schema": "ecommerce"}
+
+    offer_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    offer_name = Column(String(100), nullable=False)
+    criteria_type = Column(String(20), nullable=False)  # PURCHASE_COUNT | PURCHASE_VALUE
+    product_scope = Column(String(20), nullable=False)  # SINGLE_PRODUCT | MULTIPLE_PRODUCT | ALL_PRODUCTS
+    product_id = Column(Integer, nullable=True)  # FK to products.id when SINGLE_PRODUCT
+    required_count = Column(Integer, nullable=True)
+    required_value = Column(Numeric(10, 2), nullable=True)
+    reward_type = Column(String(20), nullable=False)  # FREE_PRODUCT | PRICE_DISCOUNT
+    free_product_id = Column(Integer, nullable=True)
+    free_product_qty = Column(Integer, nullable=True, default=1)
+    discount_percentage = Column(Numeric(5, 2), nullable=True)
+    start_datetime = Column(DateTime(timezone=True), nullable=False)
+    end_datetime = Column(DateTime(timezone=True), nullable=False)
+    status = Column(String(10), nullable=False, default="ACTIVE")  # ACTIVE | INACTIVE
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    qualifying_products = relationship("OfferQualifyingProduct", backref="offer", cascade="all, delete-orphan")
+    redemptions = relationship("OfferRedemption", backref="offer", cascade="all, delete-orphan")
+
+
+class OfferQualifyingProduct(Base):
+    __tablename__ = "offer_qualifying_products"
+    __table_args__ = {"schema": "ecommerce"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    offer_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.offers.offer_id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(Integer, nullable=False)
+
+
+class OfferRedemption(Base):
+    __tablename__ = "offer_redemptions"
+    __table_args__ = {"schema": "ecommerce"}
+
+    redemption_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    offer_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.offers.offer_id", ondelete="CASCADE"), nullable=False, index=True)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.customer_info.id", ondelete="SET NULL"), nullable=True)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("ecommerce.orders.id", ondelete="SET NULL"), nullable=True)
+    redeemed_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    benefit_applied = Column(JSON, nullable=True)
+

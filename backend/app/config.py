@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     OTP_EXPIRE_MINUTES: int   = 10
 
     RESEND_API_KEY: str       = ""
+    RESEND_FROM_EMAIL: str    = "Aura Prints <onboarding@resend.dev>"
     CRON_SECRET_KEY: str      = "aura-prints-default-cron-secret-key-change-in-production"
 
     # ── Razorpay ───────────────────────────────────────────────────────────────

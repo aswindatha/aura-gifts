@@ -12,7 +12,7 @@ from sqlalchemy.future import select
 from typing import List, Optional
 
 from app.database import get_db
-from app.models import User, OTPRecord
+from app.models import User, OTPRecord, CustomerInfo
 from app.schemas import (
     UserCreate, UserResponse, LoginRequest, TokenResponse,
     SendOTPRequest, VerifyOTPRequest, SubscribeRequest, StandardResponse,
@@ -28,18 +28,20 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 async def send_otp_email(email: str, otp_code: str):
     """
     Sends the OTP code to the user's email using Resend API.
+    Requires a verified domain on Resend to send to arbitrary email addresses.
     """
     if not settings.RESEND_API_KEY or settings.RESEND_API_KEY.startswith("re_xxxx"):
         print(f"\n[Resend Mock] Skipping real email sending. OTP for {email} is: {otp_code}\n")
         return
 
     resend.api_key = settings.RESEND_API_KEY
+    from_email = settings.RESEND_FROM_EMAIL or "Aura Prints <onboarding@resend.dev>"
     try:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
             None,
             lambda: resend.Emails.send({
-                "from": "onboarding@resend.dev",
+                "from": from_email,
                 "to": email,
                 "subject": "Aura Prints - Email Verification Code",
                 "html": f"""
@@ -60,6 +62,9 @@ async def send_otp_email(email: str, otp_code: str):
         print(f"[Resend] Sent OTP email successfully to {email}")
     except Exception as e:
         print(f"[Resend Error] Failed to send email via Resend to {email}: {e}")
+        print(f"[Resend Error] From: {from_email} | API Key prefix: {settings.RESEND_API_KEY[:8]}...")
+        print(f"[Resend Error] NOTE: If using free tier, verify your domain at https://resend.com/domains")
+        print(f"[Resend Error] OTP for {email} is: {otp_code} (printed as fallback)")
 
 @router.post("/send-otp", response_model=StandardResponse, dependencies=[Depends(rate_limiter("send_otp", constants.RATE_LIMITS["send_otp"]))])
 async def send_otp(payload: SendOTPRequest, db: AsyncSession = Depends(get_db)):
@@ -219,7 +224,31 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    
+
+    # Sync customer_info: if shopkeeper already created a record by phone, update it;
+    # otherwise create a new one.
+    phone = payload.phone.strip() if payload.phone else None
+    if phone:
+        ci_q = select(CustomerInfo).where(CustomerInfo.phone == phone)
+        ci_res = await db.execute(ci_q)
+        existing_ci = ci_res.scalars().first()
+        if existing_ci:
+            # Update missing fields from the signup data
+            if not existing_ci.email:
+                existing_ci.email = email
+            if not existing_ci.name or existing_ci.name == existing_ci.phone:
+                existing_ci.name = payload.name.strip()
+            db.add(existing_ci)
+        else:
+            new_ci = CustomerInfo(
+                name=payload.name.strip(),
+                phone=phone,
+                email=email,
+                is_sub_user=False
+            )
+            db.add(new_ci)
+        await db.commit()
+
     access_token = create_access_token(data={"sub": str(new_user.id)})
     
     return TokenResponse(
