@@ -187,6 +187,7 @@ class OrderItemCreate(BaseModel):
     quantity: int
     uploaded_file_url: Optional[str] = None
     product_id: Optional[int] = None
+    description: Optional[str] = None
 
 class OrderItemResponse(BaseModel):
     id: UUID
@@ -196,6 +197,7 @@ class OrderItemResponse(BaseModel):
     price: float
     quantity: int
     uploaded_file_url: Optional[str] = None
+    description: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -212,6 +214,7 @@ class OrderCreate(BaseModel):
     city: str
     pin_code: str
     phone_number: str
+    description: Optional[str] = None
     items: list[OrderItemCreate]
 
 class OrderStatusUpdate(BaseModel):
@@ -241,6 +244,7 @@ class OrderResponse(BaseModel):
     city: str
     pin_code: str
     phone_number: str
+    description: Optional[str] = None
     pipeline_steps: Optional[list] = None
     created_at: datetime
     items: list[OrderItemResponse]
@@ -264,6 +268,7 @@ class OrderResponse(BaseModel):
             city=order_obj.city,
             pin_code=order_obj.pin_code,
             phone_number=order_obj.phone_number,
+            description=getattr(order_obj, 'description', None),
             pipeline_steps=order_obj.pipeline_steps or [],
             created_at=order_obj.created_at,
             items=[
@@ -274,7 +279,8 @@ class OrderResponse(BaseModel):
                     subtitle=item.subtitle,
                     price=float(item.price),
                     quantity=item.quantity,
-                    uploaded_file_url=sign_r2_url(item.uploaded_file_url)
+                    uploaded_file_url=sign_r2_url(item.uploaded_file_url),
+                    description=getattr(item, 'description', None)
                 ) for item in order_obj.items
             ]
         )

@@ -36,7 +36,8 @@ async def create_order(
         street_address=payload.street_address,
         city=payload.city,
         pin_code=payload.pin_code,
-        phone_number=payload.phone_number
+        phone_number=payload.phone_number,
+        description=payload.description
     )
     db.add(new_order)
     await db.flush() # Flush to generate UUID primary key
@@ -49,7 +50,8 @@ async def create_order(
             price=item.price,
             quantity=item.quantity,
             uploaded_file_url=item.uploaded_file_url,
-            product_id=item.product_id
+            product_id=item.product_id,
+            description=item.description
         )
         db.add(new_item)
 

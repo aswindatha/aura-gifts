@@ -115,6 +115,7 @@ class Order(Base):
     city = Column(String(100), nullable=False)
     pin_code = Column(String(20), nullable=False)
     phone_number = Column(String(50), nullable=False)
+    description = Column(Text, nullable=True)
     pipeline_steps = Column(JSON, nullable=True)
     stock_deducted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
@@ -135,6 +136,7 @@ class OrderItem(Base):
     price = Column(Numeric(10, 2), nullable=False)
     quantity = Column(Integer, nullable=False)
     uploaded_file_url = Column(Text, nullable=True)
+    description = Column(Text, nullable=True)
 
     # Relationships
     order = relationship("Order", back_populates="items")
